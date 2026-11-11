@@ -12,7 +12,7 @@
 ACombatantVenusian::ACombatantVenusian()
 {
 	Profile.DisplayName = LOCTEXT("VenusianName", "Venusian");
-	Profile.GreetingLine = LOCTEXT("VenusianHello", "Hello, world!");
+	Profile.GreetingLine = LOCTEXT("VenusianHello", "Hello world, I'm looking for Kevin.");
 	Profile.Species = MarsTags::Species_Venusian;
 	Profile.UIColor = FLinearColor(1.f, 0.45f, 0.85f);
 	Profile.MaxHealth = 560.f;
@@ -22,8 +22,8 @@ ACombatantVenusian::ACombatantVenusian()
 	Profile.FlySpeed = 1100.f;
 	Profile.PreferredRange = 800.f;
 	Profile.Aggression = 0.35f;
-	Profile.VoiceAsset = FSoftObjectPath(TEXT("/Game/Audio/VO_Venusian_HelloWorld.VO_Venusian_HelloWorld"));
-	Profile.RawVoiceFile = TEXT("VO_Venusian_HelloWorld.wav");
+	Profile.VoiceAsset = FSoftObjectPath(TEXT("/Game/Audio/VO_Venusian_ArrivalHello.VO_Venusian_ArrivalHello"));
+	Profile.RawVoiceFile = TEXT("VO_Venusian_ArrivalHello.wav");
 
 	FCombatantAttack Orb;
 	Orb.Name = TEXT("PlasmaOrb");

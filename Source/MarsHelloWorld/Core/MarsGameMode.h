@@ -11,8 +11,9 @@ class AMarsEnvironment;
 class AMarsShowCamera;
 
 /**
- * Builds Mars at runtime (no .umap content needed), then directs the show:
- * entrances -> greetings -> countdown -> free-for-all -> victory.
+ * Builds Mars at runtime (no .umap content needed), then hands the show to
+ * UMarsShowSubsystem / UMarsConversationDirector:
+ * entrances -> Kevin-hunt conversation -> accusation -> free-for-all -> victory.
  * Set as GlobalDefaultGameMode in Config/DefaultEngine.ini.
  */
 UCLASS()

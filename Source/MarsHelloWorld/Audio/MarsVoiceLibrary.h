@@ -6,9 +6,10 @@
 
 class USoundBase;
 struct FCombatantProfile;
+struct FMarsDialogueLine;
 
 /**
- * Resolves a combatant's "Hello world" voice line:
+ * Resolves a voice line:
  *  1. the imported SoundWave asset (Content/Python/mars_setup.py imports RawAudio/*.wav into /Game/Audio), else
  *  2. the raw WAV under <Project>/RawAudio streamed through a USoundWaveProcedural (works in a fresh
  *     clone before any import, in editor and Development builds), else
@@ -17,5 +18,8 @@ struct FCombatantProfile;
 namespace MarsVoice
 {
 	/** Returns a playable sound and its length in seconds. A new procedural wave is made per call (they are single-use). */
+	MARSHELLOWORLD_API USoundBase* ResolveLine(UObject* Outer, const FMarsDialogueLine& Line, float& OutDurationSeconds);
+
+	/** Legacy fallback: Profile.VoiceAsset / Profile.RawVoiceFile (the original single hello-world line). */
 	MARSHELLOWORLD_API USoundBase* ResolveVoice(UObject* Outer, const FCombatantProfile& Profile, float& OutDurationSeconds);
 }

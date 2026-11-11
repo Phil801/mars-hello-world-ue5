@@ -42,9 +42,21 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Show")
 	float ArrivalRingRadius = 950.f;
 
-	/** Pause between "FIGHT!" countdown steps. */
+	/** Legacy 3-2-1 countdown step (unused since the Kevin-hunt script; kept so existing ini keys still load). */
 	UPROPERTY(Config, EditAnywhere, Category = "Show")
 	float CountdownStepSeconds = 0.8f;
+
+	/** Pause after a conversation line before the next cue. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue")
+	float ConversationGapSeconds = 0.4f;
+
+	/** After the accuser opens fire, wait this long before the others jump in on them. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue")
+	float OthersJoinAfterSeconds = 1.5f;
+
+	/** After the others join the accuser, wait this long (and play "you're all Kevin") before the free-for-all. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue")
+	float FreeForAllAfterSeconds = 1.8f;
 
 	/** After this many seconds of fighting, damage starts ramping up so the show always ends (~60-90 s total). */
 	UPROPERTY(Config, EditAnywhere, Category = "Show")

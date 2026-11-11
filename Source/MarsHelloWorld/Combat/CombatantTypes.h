@@ -109,6 +109,7 @@ struct FCombatantProfile
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Identity")
 	FText DisplayName;
 
+	/** Legacy default line (the conversation director uses MarsDialogue table ids instead). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Identity")
 	FText GreetingLine;
 

@@ -2,6 +2,7 @@
 
 #include "Audio/MarsVoiceLibrary.h"
 #include "Combat/CombatantTypes.h"
+#include "Dialogue/MarsDialogueTable.h"
 #include "MarsHelloWorld.h"
 #include "Sound/SoundWave.h"
 #include "Sound/SoundWaveProcedural.h"
@@ -67,41 +68,54 @@ namespace
 	}
 }
 
+namespace
+{
+	USoundBase* ResolveFromPaths(UObject* Outer, const FSoftObjectPath& Asset, const FString& RawFile, float& OutDurationSeconds)
+	{
+		OutDurationSeconds = 2.0f; // reading time for the subtitle when there is no audio
+
+		// 1) Imported asset.
+		if (Asset.IsValid())
+		{
+			if (USoundWave* Wave = Cast<USoundWave>(Asset.TryLoad()))
+			{
+				const float WaveDuration = Wave->GetDuration();
+				OutDurationSeconds = (WaveDuration > 0.f && WaveDuration < 60.f) ? WaveDuration : OutDurationSeconds;
+				return Wave;
+			}
+		}
+
+		// 2) Raw WAV from disk -> procedural sound wave.
+		if (!RawFile.IsEmpty())
+		{
+			const FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("RawAudio"), RawFile);
+			FPcmWav Wav;
+			if (LoadPcm16Wav(Path, Wav))
+			{
+				USoundWaveProcedural* Proc = NewObject<USoundWaveProcedural>(Outer);
+				Proc->SetSampleRate(Wav.SampleRate);
+				Proc->NumChannels = Wav.NumChannels;
+				const int32 Frames = Wav.Pcm16.Num() / (2 * Wav.NumChannels);
+				Proc->Duration = float(Frames) / float(Wav.SampleRate);
+				Proc->SoundGroup = SOUNDGROUP_Voice;
+				Proc->bLooping = false;
+				Proc->QueueAudio(Wav.Pcm16.GetData(), Wav.Pcm16.Num());
+				OutDurationSeconds = Proc->Duration;
+				return Proc;
+			}
+			UE_LOG(LogMars, Warning, TEXT("Voice line not found or unreadable: %s (subtitle only)"), *Path);
+		}
+
+		return nullptr;
+	}
+}
+
+USoundBase* MarsVoice::ResolveLine(UObject* Outer, const FMarsDialogueLine& Line, float& OutDurationSeconds)
+{
+	return ResolveFromPaths(Outer, Line.VoiceAsset, Line.RawVoiceFile, OutDurationSeconds);
+}
+
 USoundBase* MarsVoice::ResolveVoice(UObject* Outer, const FCombatantProfile& Profile, float& OutDurationSeconds)
 {
-	OutDurationSeconds = 1.8f; // reading time for the subtitle when there is no audio
-
-	// 1) Imported asset.
-	if (Profile.VoiceAsset.IsValid())
-	{
-		if (USoundWave* Wave = Cast<USoundWave>(Profile.VoiceAsset.TryLoad()))
-		{
-			const float WaveDuration = Wave->GetDuration();
-			OutDurationSeconds = (WaveDuration > 0.f && WaveDuration < 60.f) ? WaveDuration : OutDurationSeconds;
-			return Wave;
-		}
-	}
-
-	// 2) Raw WAV from disk -> procedural sound wave.
-	if (!Profile.RawVoiceFile.IsEmpty())
-	{
-		const FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("RawAudio"), Profile.RawVoiceFile);
-		FPcmWav Wav;
-		if (LoadPcm16Wav(Path, Wav))
-		{
-			USoundWaveProcedural* Proc = NewObject<USoundWaveProcedural>(Outer);
-			Proc->SetSampleRate(Wav.SampleRate);
-			Proc->NumChannels = Wav.NumChannels;
-			const int32 Frames = Wav.Pcm16.Num() / (2 * Wav.NumChannels);
-			Proc->Duration = float(Frames) / float(Wav.SampleRate);
-			Proc->SoundGroup = SOUNDGROUP_Voice;
-			Proc->bLooping = false;
-			Proc->QueueAudio(Wav.Pcm16.GetData(), Wav.Pcm16.Num());
-			OutDurationSeconds = Proc->Duration;
-			return Proc;
-		}
-		UE_LOG(LogMars, Warning, TEXT("Voice line not found or unreadable: %s (subtitle only)"), *Path);
-	}
-
-	return nullptr;
+	return ResolveFromPaths(Outer, Profile.VoiceAsset, Profile.RawVoiceFile, OutDurationSeconds);
 }

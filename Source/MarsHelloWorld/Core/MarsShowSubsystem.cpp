@@ -2,6 +2,7 @@
 
 #include "Core/MarsShowSubsystem.h"
 #include "Core/MarsShowSettings.h"
+#include "Dialogue/MarsConversationDirector.h"
 #include "Combat/CombatantCharacter.h"
 #include "Combat/MarsHealthComponent.h"
 #include "World/MarsTerrain.h"
@@ -23,7 +24,13 @@ void UMarsShowSubsystem::Deinitialize()
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearAllTimersForObject(this);
+		if (Director)
+		{
+			World->GetTimerManager().ClearAllTimersForObject(Director);
+			Director->Stop();
+		}
 	}
+	Director = nullptr;
 	Super::Deinitialize();
 }
 
@@ -40,6 +47,9 @@ void UMarsShowSubsystem::BeginShow(int32 InExpectedCombatants, int32 InSeed)
 	SetPhase(EMarsShowPhase::Arrivals);
 	ShowBanner(LOCTEXT("Welcome", "MARS  -  JEZERO CRATER"), FLinearColor(1.f, 0.62f, 0.35f), 3.0f, 3.f);
 
+	Director = NewObject<UMarsConversationDirector>(this);
+	Director->BeginShow(ExpectedCombatants, Seed);
+
 	// If anyone is still not in place after 25 s (stuck on a rock, fell through the world...), pull them in.
 	GetWorld()->GetTimerManager().SetTimer(StragglerTimer, this, &UMarsShowSubsystem::ForceStragglers, 25.f, false);
 }
@@ -54,87 +64,36 @@ void UMarsShowSubsystem::RegisterCombatant(ACombatantCharacter* Combatant)
 
 void UMarsShowSubsystem::NotifyArrived(ACombatantCharacter* Combatant)
 {
-	if (!Combatant || Greeted.Contains(Combatant) || GreetingQueue.Contains(Combatant))
+	if (Director)
 	{
-		return;
-	}
-	GreetingQueue.Add(Combatant);
-	if (Phase == EMarsShowPhase::Arrivals)
-	{
-		SetPhase(EMarsShowPhase::Greetings);
-	}
-	TryStartNextGreeting();
-}
-
-void UMarsShowSubsystem::TryStartNextGreeting()
-{
-	if (CurrentSpeaker.IsValid() || GreetingQueue.Num() == 0)
-	{
-		return;
-	}
-	ACombatantCharacter* Next = GreetingQueue[0];
-	GreetingQueue.RemoveAt(0);
-	if (!Next)
-	{
-		TryStartNextGreeting();
-		return;
-	}
-	CurrentSpeaker = Next;
-	Next->StartGreeting();
-}
-
-void UMarsShowSubsystem::NotifyGreetingFinished(ACombatantCharacter* Combatant)
-{
-	if (Combatant && !Greeted.Contains(Combatant))
-	{
-		Greeted.Add(Combatant);
-	}
-	if (CurrentSpeaker.Get() == Combatant)
-	{
-		CurrentSpeaker.Reset();
-	}
-
-	if (Greeted.Num() >= ExpectedCombatants && Phase == EMarsShowPhase::Greetings)
-	{
-		StartCountdown();
-	}
-	else
-	{
-		TryStartNextGreeting();
+		Director->NotifyArrived(Combatant);
 	}
 }
 
-void UMarsShowSubsystem::StartCountdown()
+void UMarsShowSubsystem::SetCurrentSpeaker(ACombatantCharacter* Combatant)
 {
-	SetPhase(EMarsShowPhase::Countdown);
-	CountdownValue = 3;
-	const float Step = GetDefault<UMarsShowSettings>()->CountdownStepSeconds;
-	ShowBanner(LOCTEXT("Ready", "...and now they fight to the death"), FLinearColor(1.f, 0.85f, 0.6f), Step * 1.2f, 2.5f);
-	GetWorld()->GetTimerManager().SetTimer(CountdownTimer, this, &UMarsShowSubsystem::CountdownTick, Step, true, Step * 1.3f);
+	CurrentSpeaker = Combatant;
 }
 
-void UMarsShowSubsystem::CountdownTick()
+void UMarsShowSubsystem::MarkFightClockStarted()
 {
-	const float Step = GetDefault<UMarsShowSettings>()->CountdownStepSeconds;
-	if (CountdownValue > 0)
+	if (FightStartTime < 0.f)
 	{
-		ShowBanner(FText::AsNumber(CountdownValue), FLinearColor::White, Step * 0.95f, 6.f);
-		--CountdownValue;
-		return;
+		FightStartTime = Now();
 	}
-	GetWorld()->GetTimerManager().ClearTimer(CountdownTimer);
-	ShowBanner(LOCTEXT("Fight", "FIGHT!"), FLinearColor(1.f, 0.25f, 0.1f), 1.2f, 7.f);
-	AddCameraShake(0.6f);
-	StartFight();
 }
 
 void UMarsShowSubsystem::StartFight()
 {
-	FightStartTime = Now();
+	MarkFightClockStarted();
 	SetPhase(EMarsShowPhase::Fight);
+	AddCameraShake(0.6f);
 	for (ACombatantCharacter* C : GetCombatants(true))
 	{
-		C->StartFighting();
+		if (C->GetCombatState() != ECombatantState::Fighting)
+		{
+			C->StartFighting();
+		}
 	}
 }
 
@@ -165,6 +124,10 @@ void UMarsShowSubsystem::NotifyDeath(ACombatantCharacter* Victim, ACombatantChar
 
 	ShowBanner(FText::Format(LOCTEXT("Fallen", "{0} HAS FALLEN"), Victim->GetProfile().DisplayName), Victim->GetProfile().UIColor, 1.8f, 3.f);
 	AddCameraShake(0.8f);
+	if (Director)
+	{
+		Director->NotifyDeath(Victim, Killer);
+	}
 	OnCombatantDied.Broadcast(Victim, Killer);
 	CheckForWinner();
 }

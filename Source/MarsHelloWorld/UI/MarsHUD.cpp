@@ -84,12 +84,20 @@ void AMarsHUD::DrawCaption(UMarsShowSubsystem* Show, float Now)
 	UFont* Font = GEngine->GetLargeFont();
 	const FString Speaker = Cap.Speaker.ToString() + TEXT(":");
 	const FString Line = FString::Printf(TEXT("\"%s\""), *Cap.Line.ToString());
-	const float Scale = 1.6f * S;
+	float Scale = 1.6f * S;
 
 	float SW = 0.f, SH = 0.f, LW = 0.f, LH = 0.f;
 	GetTextSize(Speaker + TEXT(" "), SW, SH, Font, Scale);
 	GetTextSize(Line, LW, LH, Font, Scale);
-	const float Total = SW + LW;
+	float Total = SW + LW;
+	const float MaxWidth = Canvas->ClipX * 0.9f;
+	if (Total > MaxWidth && Total > 1.f)
+	{
+		Scale *= MaxWidth / Total;
+		GetTextSize(Speaker + TEXT(" "), SW, SH, Font, Scale);
+		GetTextSize(Line, LW, LH, Font, Scale);
+		Total = SW + LW;
+	}
 	const float X = Canvas->ClipX * 0.5f - Total * 0.5f;
 	const float Y = Canvas->ClipY * 0.82f;
 	const float Pad = 14.f * S;
@@ -179,8 +187,8 @@ void AMarsHUD::DrawStatus(UMarsShowSubsystem* Show)
 	switch (Show->GetPhase())
 	{
 	case EMarsShowPhase::Arrivals: PhaseText = TEXT("Arrivals"); break;
-	case EMarsShowPhase::Greetings: PhaseText = TEXT("Greetings"); break;
-	case EMarsShowPhase::Countdown: PhaseText = TEXT("Countdown"); break;
+	case EMarsShowPhase::Conversation: PhaseText = TEXT("Looking for Kevin"); break;
+	case EMarsShowPhase::Accusation: PhaseText = TEXT("Accusation"); break;
 	case EMarsShowPhase::Fight: PhaseText = FString::Printf(TEXT("Fight  %0.1fs"), Show->GetFightElapsed()); break;
 	case EMarsShowPhase::Victory: PhaseText = TEXT("Victory"); break;
 	}

@@ -2,7 +2,7 @@
 Mars Hello World - one-shot editor setup (UE 5.8 Python, PythonScriptPlugin + EditorScriptingUtilities).
 
 Creates the few binary assets a C++-only repo cannot ship as text:
-  * /Game/Audio/VO_<Species>_HelloWorld   - SoundWaves imported from RawAudio/*.wav
+  * /Game/Audio/VO_<Species>_<LineId>      - SoundWaves imported from RawAudio/*.wav
   * /Game/Materials/M_MarsGround          - vertex-colour ground (the procedural terrain paints rust colours)
   * /Game/Materials/M_MarsSurface         - "Color" param base colour, "Glow" param emissive
   * /Game/Materials/M_MarsEmissive        - same but glowing by default (eyes, flames, projectiles)
@@ -20,12 +20,6 @@ It is idempotent: existing assets are re-imported / rebuilt in place, never dele
 import os
 import unreal
 
-VOICES = {
-    "VO_Martian_HelloWorld": "VO_Martian_HelloWorld.wav",
-    "VO_XBot_HelloWorld": "VO_XBot_HelloWorld.wav",
-    "VO_Venusian_HelloWorld": "VO_Venusian_HelloWorld.wav",
-}
-
 AUDIO_DIR = "/Game/Audio"
 MAT_DIR = "/Game/Materials"
 MAP_PATH = "/Game/Maps/MarsArena"
@@ -39,14 +33,29 @@ def log(msg):
     unreal.log("[MarsSetup] " + msg)
 
 
+def list_voice_wavs(raw_dir):
+    """Top-level RawAudio/*.wav only. Archived hello-world lines stay in RawAudio/Archive/."""
+    if not os.path.isdir(raw_dir):
+        return []
+    names = []
+    for file_name in sorted(os.listdir(raw_dir)):
+        if file_name.lower().endswith(".wav"):
+            names.append(file_name)
+    return names
+
+
 def import_voices():
     raw_dir = os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "RawAudio")
+    wavs = list_voice_wavs(raw_dir)
+    if not wavs:
+        unreal.log_warning("[MarsSetup] no WAV files in " + raw_dir)
+        return
     tasks = []
-    for asset_name, file_name in VOICES.items():
+    asset_names = []
+    for file_name in wavs:
         path = os.path.join(raw_dir, file_name)
-        if not os.path.isfile(path):
-            unreal.log_warning("[MarsSetup] missing " + path)
-            continue
+        asset_name = os.path.splitext(file_name)[0]
+        asset_names.append(asset_name)
         task = unreal.AssetImportTask()
         task.set_editor_property("filename", path)
         task.set_editor_property("destination_path", AUDIO_DIR)
@@ -57,7 +66,7 @@ def import_voices():
         tasks.append(task)
     if tasks:
         asset_tools.import_asset_tasks(tasks)
-    for asset_name in VOICES:
+    for asset_name in asset_names:
         wave = eal.load_asset(AUDIO_DIR + "/" + asset_name)
         if wave:
             # Voice sound group = no reverb send surprises; keep it uncompressed-ish for clarity.

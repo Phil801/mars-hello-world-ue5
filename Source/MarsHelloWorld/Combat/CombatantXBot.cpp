@@ -13,7 +13,7 @@
 ACombatantXBot::ACombatantXBot()
 {
 	Profile.DisplayName = LOCTEXT("XBotName", "X-Bot");
-	Profile.GreetingLine = LOCTEXT("XBotHello", "Hello, world.");
+	Profile.GreetingLine = LOCTEXT("XBotHello", "Hello, world. I'm looking for Kevin.");
 	Profile.Species = MarsTags::Species_XBot;
 	Profile.UIColor = FLinearColor(0.3f, 0.85f, 1.f);
 	Profile.MaxHealth = 600.f;
@@ -22,8 +22,8 @@ ACombatantXBot::ACombatantXBot()
 	Profile.FlySpeed = 1900.f;
 	Profile.PreferredRange = 900.f;
 	Profile.Aggression = 0.45f;
-	Profile.VoiceAsset = FSoftObjectPath(TEXT("/Game/Audio/VO_XBot_HelloWorld.VO_XBot_HelloWorld"));
-	Profile.RawVoiceFile = TEXT("VO_XBot_HelloWorld.wav");
+	Profile.VoiceAsset = FSoftObjectPath(TEXT("/Game/Audio/VO_XBot_ArrivalHello.VO_XBot_ArrivalHello"));
+	Profile.RawVoiceFile = TEXT("VO_XBot_ArrivalHello.wav");
 
 	FCombatantAttack Laser;
 	Laser.Name = TEXT("EyeLaser");

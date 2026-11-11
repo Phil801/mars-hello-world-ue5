@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate the three "Hello world" voice lines in RawAudio/.
+"""Regenerate the Kevin-hunt voice lines in RawAudio/.
 
 Pipeline (fully offline once the voice model is downloaded):
   1. Piper TTS (https://github.com/rhasspy/piper, GPL-3.0 tool; generated audio is ours)
@@ -8,23 +8,75 @@ Pipeline (fully offline once the voice model is downloaded):
   2. Character effects in numpy (ring modulation, bit-crush, vibrato) and ffmpeg
      (pitch shift, echo, chorus, reverb-ish delays, loudness normalisation).
 
+Keep the spoken texts in sync with Source/MarsHelloWorld/Dialogue/MarsDialogueTable.cpp.
+
+The original one-line "Hello, world!" recordings live in RawAudio/Archive/HelloWorld/
+and are not overwritten by this script.
+
 Usage:
   python3 -m venv .venv && .venv/bin/pip install piper-tts numpy
   curl -L -o voice.onnx      https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/libritts_r/medium/en_US-libritts_r-medium.onnx
   curl -L -o voice.onnx.json https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/libritts_r/medium/en_US-libritts_r-medium.onnx.json
   .venv/bin/python Tools/voice/generate_voices.py --model voice.onnx --out RawAudio
 Requires ffmpeg on PATH.
+
+Optional: --only Martian_ArrivalHello  (regenerate one file)
 """
 import argparse, os, subprocess, tempfile, wave
 import numpy as np
 
 SR = 44100
 
+# name: (speaker id, piper length_scale, {line_id: text})
 CHARACTERS = {
-    # name: (speaker id, piper length_scale, text)
-    "Martian":  (700, 1.35, "Hello, world!"),
-    "XBot":     (333, 1.05, "Hello, world."),
-    "Venusian": (850, 1.20, "Hello, world!"),
+    "Martian": (700, 1.35, {
+        "ArrivalHello": "Hello world, I'm looking for Kevin.",
+        "ArrivalSeenKevin": "Have you seen Kevin?",
+        "ArrivalVariant": "Hello, world! Kevin was supposed to meet me here.",
+        "AskAreYouKevin": "Are you Kevin?",
+        "AskAreYouKevinVariant": "Wait. Are you Kevin?",
+        "DenyPhil": "I'm Phil.",
+        "DenyTyler": "I'm Tyler.",
+        "DenyOther": "Kevin? No. Not me.",
+        "KeepLooking": "Still looking for Kevin.",
+        "Accuse": "Wait... you're Kevin!",
+        "AccuseVariant": "That's Kevin! Get him!",
+        "AllAreKevin": "You're all Kevin!",
+        "KillKevin": "I killed Kevin!",
+        "KillKevinVariant": "Got him! I killed Kevin!",
+    }),
+    "XBot": (333, 1.05, {
+        "ArrivalHello": "Hello, world. I'm looking for Kevin.",
+        "ArrivalSeenKevin": "Have you seen Kevin?",
+        "ArrivalVariant": "Hello, world. Scanning for Kevin.",
+        "AskAreYouKevin": "Are you Kevin?",
+        "AskAreYouKevinVariant": "Identify. Are you Kevin?",
+        "DenyPhil": "I'm Phil.",
+        "DenyTyler": "I'm Tyler.",
+        "DenyOther": "Negative. I am not Kevin.",
+        "KeepLooking": "Kevin is not in this scan.",
+        "Accuse": "Target identified. You are Kevin.",
+        "AccuseVariant": "Kevin confirmed. Engaging.",
+        "AllAreKevin": "Recalculating. All units are Kevin.",
+        "KillKevin": "I killed Kevin!",
+        "KillKevinVariant": "Kevin eliminated.",
+    }),
+    "Venusian": (850, 1.20, {
+        "ArrivalHello": "Hello world, I'm looking for Kevin.",
+        "ArrivalSeenKevin": "Have you seen Kevin?",
+        "ArrivalVariant": "Hello, world! I'm looking for someone called Kevin.",
+        "AskAreYouKevin": "Are you Kevin?",
+        "AskAreYouKevinVariant": "You there... are you Kevin?",
+        "DenyPhil": "I'm Phil.",
+        "DenyTyler": "I'm Tyler.",
+        "DenyOther": "Oh, no, I'm not Kevin.",
+        "KeepLooking": "Has anyone seen Kevin?",
+        "Accuse": "I knew it! You're Kevin!",
+        "AccuseVariant": "Kevin! I found Kevin!",
+        "AllAreKevin": "Wait... you're ALL Kevin!",
+        "KillKevin": "I killed Kevin!",
+        "KillKevinVariant": "I killed Kevin! Finally!",
+    }),
 }
 
 # ffmpeg filter chains applied after the numpy stage
@@ -66,30 +118,45 @@ def robotize(x, sr):
     return y
 
 
+def synthesize(piper, model, name, spk, ls, text, out_path, tmp):
+    raw = os.path.join(tmp, f"{name}_raw.wav")
+    subprocess.run([piper, "-m", model, "--speaker", str(spk), "--length_scale", str(ls),
+                    "--sentence_silence", "0.0", "-f", raw], input=text.encode(), check=True,
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    up = os.path.join(tmp, f"{name}_44k.wav")
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-ar", str(SR), "-ac", "1", up], check=True)
+    x, sr = read_wav(up)
+    if name == "XBot":
+        x = robotize(x, sr)
+    mid = os.path.join(tmp, f"{name}_mid.wav")
+    write_wav(mid, np.concatenate([np.zeros(int(0.05 * sr)), x, np.zeros(int(0.45 * sr))]), sr)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", mid, "-af", FFMPEG[name],
+                    "-ar", str(SR), "-ac", "1", "-c:a", "pcm_s16le", out_path], check=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True)
     ap.add_argument("--out", default="RawAudio")
     ap.add_argument("--piper", default="piper")
+    ap.add_argument("--only", default="", help="Regenerate one line: Character_LineId (e.g. Martian_ArrivalHello)")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
+    wanted = a.only.strip() or None
+    wrote = 0
     with tempfile.TemporaryDirectory() as tmp:
-        for name, (spk, ls, text) in CHARACTERS.items():
-            raw = os.path.join(tmp, f"{name}_raw.wav")
-            subprocess.run([a.piper, "-m", a.model, "--speaker", str(spk), "--length_scale", str(ls),
-                            "--sentence_silence", "0.0", "-f", raw], input=text.encode(), check=True,
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            up = os.path.join(tmp, f"{name}_44k.wav")
-            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-ar", str(SR), "-ac", "1", up], check=True)
-            x, sr = read_wav(up)
-            if name == "XBot":
-                x = robotize(x, sr)
-            mid = os.path.join(tmp, f"{name}_mid.wav")
-            write_wav(mid, np.concatenate([np.zeros(int(0.05 * sr)), x, np.zeros(int(0.6 * sr))]), sr)
-            out = os.path.join(a.out, f"VO_{name}_HelloWorld.wav")
-            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", mid, "-af", FFMPEG[name],
-                            "-ar", str(SR), "-ac", "1", "-c:a", "pcm_s16le", out], check=True)
-            print("wrote", out)
+        for name, (spk, ls, lines) in CHARACTERS.items():
+            for line_id, text in lines.items():
+                key = f"{name}_{line_id}"
+                if wanted and key != wanted:
+                    continue
+                out = os.path.join(a.out, f"VO_{name}_{line_id}.wav")
+                synthesize(a.piper, a.model, name, spk, ls, text, out, tmp)
+                print("wrote", out)
+                wrote += 1
+    if wanted and wrote == 0:
+        raise SystemExit(f"no line matched --only {wanted}")
+    print(f"done ({wrote} files)")
 
 
 if __name__ == "__main__":

@@ -23,6 +23,7 @@ class UPointLightComponent;
  *   component and untick bUsePrimitiveBody.
  * - Brain: a small C++ state machine (Entering -> Greeting -> Ready -> Fighting -> Dead/Victorious),
  *   mirrored as a gameplay tag (CurrentStateTag) so a StateTree can take over later.
+ *   Greeting now means "holding for a conversation line", not a one-shot hello.
  * - Data: everything tunable is in FCombatantProfile (or a UCombatantDefinition data asset).
  */
 UCLASS(Abstract)
@@ -35,10 +36,15 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
-	// --- Director API (called by AMarsGameMode / UMarsShowSubsystem) ---------------------------
+	// --- Director API (called by AMarsGameMode / UMarsConversationDirector) --------------------
 	void LaunchEntrance(const FVector& InArrivalPoint, const FVector& InArenaCenter, int32 InSeed);
-	void StartGreeting();
+	/** Play a table line with a HUD subtitle. Optional hold in the Greeting state until it ends.
+	 *  Returns the hold time in seconds (audio duration + a short tail) so the director can time the next cue
+	 *  even if this actor is destroyed mid-line. */
+	float SpeakLine(FName LineId, ACombatantCharacter* AddressTo, bool bHoldForConversation, bool bFlourish);
 	void StartFighting();
+	void StartFightingAt(ACombatantCharacter* InitialTarget, bool bPinTarget, bool bReadyToFire = false);
+	void ClearTargetPin();
 	void Celebrate();
 	/** Safety net: teleport to the arrival point if something blocked the entrance. */
 	void ForceArrive();
@@ -124,6 +130,12 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<ACombatantCharacter> LastAttacker;
 
+	/** Who this combatant is addressing during a conversation line (face them). */
+	TWeakObjectPtr<ACombatantCharacter> AddressTarget;
+
+	/** When true, ChooseTarget will not drop Target until it dies or ClearTargetPin is called. */
+	bool bTargetPinned = false;
+
 	FRandomStream Stream;
 
 private:
@@ -142,7 +154,6 @@ private:
 	void ExecuteProjectile(const FCombatantAttack& Attack, ACombatantCharacter* Victim);
 	void ExecutePulse(const FCombatantAttack& Attack);
 
-	void PlayVoice(bool bShowSubtitle);
 	void FlashHit();
 	void Die(ACombatantCharacter* Killer);
 

@@ -7,6 +7,7 @@
 #include "Core/MarsGameplayTags.h"
 #include "Core/MarsShowSubsystem.h"
 #include "Audio/MarsVoiceLibrary.h"
+#include "Dialogue/MarsDialogueTable.h"
 #include "MarsHelloWorld.h"
 #include "AIController.h"
 #include "Components/CapsuleComponent.h"
@@ -233,8 +234,9 @@ void ACombatantCharacter::Tick(float DeltaSeconds)
 		TickHover(DeltaSeconds);
 		if (CombatState == ECombatantState::Ready || CombatState == ECombatantState::Greeting)
 		{
-			// Face the middle of the arena while waiting.
-			const FVector To = (ArenaCenter - GetActorLocation()).GetSafeNormal2D();
+			const ACombatantCharacter* FaceWho = AddressTarget.Get();
+			const FVector Goal = (FaceWho && FaceWho != this) ? FaceWho->GetActorLocation() : ArenaCenter;
+			const FVector To = (Goal - GetActorLocation()).GetSafeNormal2D();
 			if (!To.IsNearlyZero())
 			{
 				SetActorRotation(FMath::RInterpTo(GetActorRotation(), To.Rotation(), DeltaSeconds, 4.f));
@@ -379,49 +381,81 @@ void ACombatantCharacter::TickHover(float DeltaSeconds)
 }
 
 // ------------------------------------------------------------------------------------------------
-// Greeting
+// Dialogue
 // ------------------------------------------------------------------------------------------------
 
-void ACombatantCharacter::StartGreeting()
+float ACombatantCharacter::SpeakLine(FName LineId, ACombatantCharacter* AddressTo, bool bHoldForConversation, bool bFlourish)
 {
-	SetCombatState(ECombatantState::Greeting);
-	AuraLight->SetIntensity(6000.f);
-	OnGreetingFlourish();
-	PlayVoice(true);
-}
+	AddressTarget = AddressTo;
+	if (AddressTo && AddressTo != this)
+	{
+		const FVector To = (AddressTo->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+		if (!To.IsNearlyZero())
+		{
+			SetActorRotation(To.Rotation());
+		}
+	}
 
-void ACombatantCharacter::PlayVoice(bool bShowSubtitle)
-{
-	float Duration = 1.8f;
-	USoundBase* Voice = MarsVoice::ResolveVoice(this, Profile, Duration);
+	const bool bHold = bHoldForConversation && IsAlive()
+		&& CombatState != ECombatantState::Fighting
+		&& CombatState != ECombatantState::Dead
+		&& CombatState != ECombatantState::Victorious;
+
+	if (bHold)
+	{
+		SetCombatState(ECombatantState::Greeting);
+		if (AuraLight)
+		{
+			AuraLight->SetIntensity(6000.f);
+		}
+	}
+	if (bFlourish)
+	{
+		OnGreetingFlourish();
+	}
+
+	float Duration = 2.0f;
+	FText Spoken = Profile.GreetingLine;
+	USoundBase* Voice = nullptr;
+	if (const FMarsDialogueLine* Line = MarsDialogue::FindLine(MarsDialogue::SpeakerFromSpecies(Profile.Species), LineId))
+	{
+		Spoken = Line->Text;
+		Voice = MarsVoice::ResolveLine(this, *Line, Duration);
+	}
+	else
+	{
+		// Legacy single-file fallback (Profile.RawVoiceFile / VoiceAsset).
+		Voice = MarsVoice::ResolveVoice(this, Profile, Duration);
+	}
+
 	if (Voice)
 	{
 		UGameplayStatics::SpawnSound2D(this, Voice);
 	}
 
-	UMarsShowSubsystem* Show = GetShow();
-	if (Show && bShowSubtitle)
+	if (UMarsShowSubsystem* Show = GetShow())
 	{
-		Show->ShowCaption(Profile.DisplayName, Profile.GreetingLine, Profile.UIColor, Duration + 0.6f);
-		Show->AddFloatingText(GetHeadPoint() + FVector(0.f, 0.f, 40.f), Profile.GreetingLine.ToString(), Profile.UIColor, 1.6f, Duration + 0.6f);
+		Show->ShowCaption(Profile.DisplayName, Spoken, Profile.UIColor, Duration + 0.6f);
+		Show->AddFloatingText(GetHeadPoint() + FVector(0.f, 0.f, 40.f), Spoken.ToString(), Profile.UIColor, 1.4f, Duration + 0.6f);
 	}
 
-	if (CombatState == ECombatantState::Greeting)
+	const float HoldTime = Duration + 0.35f;
+	if (bHold)
 	{
 		FTimerHandle Handle;
 		GetWorldTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(this, [this]()
 		{
-			AuraLight->SetIntensity(0.f);
 			if (CombatState == ECombatantState::Greeting)
 			{
+				if (AuraLight)
+				{
+					AuraLight->SetIntensity(0.f);
+				}
 				SetCombatState(ECombatantState::Ready);
 			}
-			if (UMarsShowSubsystem* S = GetShow())
-			{
-				S->NotifyGreetingFinished(this);
-			}
-		}), Duration + 0.5f, false);
+		}), HoldTime, false);
 	}
+	return HoldTime;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -430,22 +464,58 @@ void ACombatantCharacter::PlayVoice(bool bShowSubtitle)
 
 void ACombatantCharacter::StartFighting()
 {
+	StartFightingAt(nullptr, false, false);
+}
+
+void ACombatantCharacter::StartFightingAt(ACombatantCharacter* InitialTarget, bool bPinTarget, bool bReadyToFire)
+{
 	if (!IsAlive())
 	{
 		return;
 	}
 	SetCombatState(ECombatantState::Fighting);
 	GetCharacterMovement()->bOrientRotationToMovement = false; // we face our target manually
+	if (AuraLight)
+	{
+		AuraLight->SetIntensity(0.f);
+	}
 	for (int32 i = 0; i < AttackCooldowns.Num(); ++i)
 	{
-		AttackCooldowns[i] = Stream.FRandRange(0.2f, 1.2f); // desync the first volley
+		AttackCooldowns[i] = bReadyToFire ? 0.f : Stream.FRandRange(0.2f, 1.2f);
 	}
-	RetargetTimer = 0.f;
+	if (bReadyToFire)
+	{
+		GlobalAttackLockout = 0.f;
+	}
+	if (InitialTarget && InitialTarget->IsAlive() && InitialTarget != this)
+	{
+		Target = InitialTarget;
+		bTargetPinned = bPinTarget;
+		RetargetTimer = bPinTarget ? 1000.f : Stream.FRandRange(2.5f, 4.5f);
+	}
+	else
+	{
+		bTargetPinned = false;
+		Target = nullptr;
+		RetargetTimer = 0.f;
+	}
 	StrafeSign = Stream.FRand() < 0.5f ? -1.f : 1.f;
+}
+
+void ACombatantCharacter::ClearTargetPin()
+{
+	bTargetPinned = false;
+	RetargetTimer = 0.f;
 }
 
 void ACombatantCharacter::ChooseTarget()
 {
+	if (bTargetPinned && Target && Target->IsAlive())
+	{
+		return;
+	}
+	bTargetPinned = false;
+
 	const UMarsShowSubsystem* Show = GetShow();
 	if (!Show)
 	{
@@ -806,5 +876,5 @@ void ACombatantCharacter::Celebrate()
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	AuraLight->SetIntensity(9000.f);
 	HopTimer = 0.4f;
-	PlayVoice(true); // a victorious second "Hello world"
+	// Victory is silent: the last "I killed Kevin!" is the closing line.
 }

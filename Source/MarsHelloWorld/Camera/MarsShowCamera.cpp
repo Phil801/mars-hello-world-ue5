@@ -110,7 +110,7 @@ void AMarsShowCamera::ComputeDesired(UMarsShowSubsystem* Show, float Time, FVect
 		OutFOV = 72.f;
 		break;
 	}
-	case EMarsShowPhase::Greetings:
+	case EMarsShowPhase::Conversation:
 	{
 		if (ACombatantCharacter* Speaker = Show->GetCurrentSpeaker())
 		{
@@ -129,13 +129,25 @@ void AMarsShowCamera::ComputeDesired(UMarsShowSubsystem* Show, float Time, FVect
 		}
 		break;
 	}
-	case EMarsShowPhase::Countdown:
+	case EMarsShowPhase::Accusation:
 	{
-		// Slow push-in on the line-up.
-		const float T = FMath::Clamp(Time - Show->GetPhaseStartTime(), 0.f, 4.f) / 4.f;
-		OutLookAt = Brawl + FVector(0.f, 0.f, 120.f);
-		OutLocation = Brawl + Around * FMath::Lerp(2100.f, 1500.f, T) + FVector(0.f, 0.f, FMath::Lerp(700.f, 260.f, T));
-		OutFOV = 68.f;
+		if (ACombatantCharacter* Speaker = Show->GetCurrentSpeaker())
+		{
+			const FVector Head = Speaker->GetHeadPoint();
+			const FVector Fwd = Speaker->GetActorForwardVector().GetSafeNormal2D();
+			const FVector Side = FVector::CrossProduct(FVector::UpVector, Fwd);
+			OutLookAt = Head - FVector(0.f, 0.f, 25.f);
+			OutLocation = Head + Fwd * 520.f + Side * 140.f + FVector(0.f, 0.f, 30.f);
+			OutFOV = 55.f;
+		}
+		else
+		{
+			// Slow push-in on the line-up between spoken cues.
+			const float T = FMath::Clamp(Time - Show->GetPhaseStartTime(), 0.f, 4.f) / 4.f;
+			OutLookAt = Brawl + FVector(0.f, 0.f, 120.f);
+			OutLocation = Brawl + Around * FMath::Lerp(2100.f, 1500.f, T) + FVector(0.f, 0.f, FMath::Lerp(700.f, 260.f, T));
+			OutFOV = 68.f;
+		}
 		break;
 	}
 	case EMarsShowPhase::Fight:
@@ -167,7 +179,7 @@ void AMarsShowCamera::Tick(float DeltaSeconds)
 	UMarsShowSubsystem* Show = World ? World->GetSubsystem<UMarsShowSubsystem>() : nullptr;
 	const float Time = World ? World->GetTimeSeconds() : 0.f;
 
-	// Orbit speed depends on the phase: lazy during greetings, brisk during the fight.
+	// Orbit speed depends on the phase: lazy during conversation, brisk during the fight.
 	float OrbitSpeed = 6.f;
 	if (Show)
 	{
@@ -175,7 +187,7 @@ void AMarsShowCamera::Tick(float DeltaSeconds)
 		{
 		case EMarsShowPhase::Fight: OrbitSpeed = 9.f; break;
 		case EMarsShowPhase::Victory: OrbitSpeed = 18.f; break;
-		case EMarsShowPhase::Greetings: OrbitSpeed = 2.f; break;
+		case EMarsShowPhase::Conversation: case EMarsShowPhase::Accusation: OrbitSpeed = 2.f; break;
 		default: break;
 		}
 	}

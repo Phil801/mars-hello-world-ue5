@@ -10,14 +10,19 @@ On a red Mars plain under a butterscotch sky, three visitors arrive:
 | **X-Bot** (chrome robot, cyan visor) | Flies in on a jetpack and lands hard | Ring-modulated, bit-crushed robot | Eye lasers, laser burst, rocket punch |
 | **The Venusian** (gold jellyfish, magenta core) | Hovers in and keeps floating | High, shimmering, echoing | Homing plasma orbs, sonic pulse, tentacle lash |
 
-Each one turns to the camera and says **"Hello, world!"** in its own voice, with subtitles. Then a
-countdown starts, *"...and now they fight to the death"*, and it's a free-for-all until one is left.
-Losers fall apart (their body parts become physics objects), and the winner gets a victory banner
-and a lap of honour. A full show runs about **60 to 90 seconds**. Gravity is Mars gravity (3.71 m/s²),
-so everything hops and floats a bit.
+Each one arrives looking for Kevin. They say **"Hello world, I'm looking for Kevin."** / **"Have you
+seen Kevin?"** (and a few variants) in their own voice, with HUD subtitles. As the others show up they
+ask **"Are you Kevin?"** One answers **"I'm Phil."**, another **"I'm Tyler."**, and the third gives a
+non-Kevin denial. They keep looking. Then, at a moment picked from the show seed, one of them decides
+another **is** Kevin and starts shooting. The others jump in on the accuser, then each decides that
+**all the others** are Kevin — a free-for-all. Whenever someone is knocked out, the one who did it
+yells **"I killed Kevin!"** Losers fall apart (their body parts become physics objects), and the
+winner gets a victory banner and a lap of honour. A full show runs about **80 to 120 seconds**.
+Gravity is Mars gravity (3.71 m/s²), so everything hops and floats a bit.
 
 The project is **C++-first, with no hand-made binary assets**. The terrain, sky, characters, effects
-and HUD are all built by code when the game starts. Three WAV voice files are the only media.
+and HUD are all built by code when the game starts. The WAV voice lines in `RawAudio/` are the only
+media (the original one-line "Hello, world!" takes are archived under `RawAudio/Archive/HelloWorld/`).
 
 ## Run it on Windows
 
@@ -67,32 +72,39 @@ flowchart TD
     B -->|timed entrances| M[Martian runs in]
     B -->|timed entrances| X[X-Bot flies in]
     B -->|timed entrances| V[Venusian hovers in]
-    M & X & V -->|NotifyArrived| S
-    S -->|one at a time| G[Greeting: voice + subtitle]
-    G --> CD[Countdown: ...and now they fight to the death, 3, 2, 1, FIGHT!]
-    CD --> F[Free-for-all: melee, projectiles, pulses]
+    M & X & V -->|NotifyArrived| D[UMarsConversationDirector]
+    D -->|cue table| G[Conversation: looking for Kevin, Are you Kevin?, I'm Phil / I'm Tyler]
+    G --> ACC[Accusation: one decides another is Kevin and opens fire]
+    ACC --> J[Others fight the accuser, then "you're all Kevin!"]
+    J --> F[Free-for-all: melee, projectiles, pulses]
     F -->|after 50 s| SD[Sudden death: damage ramps up]
-    F -->|NotifyDeath| D[Loser collapses into physics parts]
-    D -->|one left| W[Victory banner + celebration]
+    F -->|NotifyDeath| KO[Killer: "I killed Kevin!" + loser collapses into physics parts]
+    KO -->|one left| W[Victory banner + celebration]
     H[AMarsHUD: banners, subtitles, health bars, damage numbers, kill feed] -.reads.-> S
 ```
 
 Code map (`Source/MarsHelloWorld/`):
 
 - `Core/`: `MarsGameMode` builds the world and spawns the cast. `MarsShowSubsystem` is the referee and runs the phases
-  Arrivals → Greetings → Countdown → Fight → Victory. `MarsShowSettings` holds the tunables (Project Settings → Game → Mars Show).
+  Arrivals → Conversation → Accusation → Fight → Victory. `MarsShowSettings` holds the tunables (Project Settings → Game → Mars Show).
   `MarsGameplayTags` has the state, damage and species tags. `MarsPlayerController` is spectator input built at runtime with Enhanced Input.
+- `Dialogue/`: `MarsDialogueTable` is the data-driven line set (C++ only, no `.uasset` data table). `MarsConversationDirector`
+  is the arrival / conversation / accusation state machine: it assigns "I'm Phil" / "I'm Tyler" / the evasive denial at
+  random from the show seed, picks who accuses whom first, and queues a kill line on each KO.
 - `World/`: `MarsTerrain` is a procedural mesh with fractal noise, ridges, seeded craters and a flattened arena, plus instanced rocks.
   `MarsEnvironment` holds the sky, fog, light and moons. `MarsAssets` builds bodies from `/Engine/BasicShapes` and handles material fallbacks.
 - `Combat/`: `CombatantCharacter` is the shared state machine (Entering → Greeting → Ready → Fighting → Dead/Victorious), AI and attacks.
-  `CombatantMartian`, `CombatantXBot` and `CombatantVenusian` hold each character's body, animation and moves (data in `FCombatantProfile`).
-  `MarsProjectile`, `MarsHitFlash` (hit effects with no Niagara needed) and `MarsHealthComponent` support them.
+  Greeting means "holding for a conversation line". `CombatantMartian`, `CombatantXBot` and `CombatantVenusian` hold each character's
+  body, animation and moves (data in `FCombatantProfile`). `MarsProjectile`, `MarsHitFlash` (hit effects with no Niagara needed)
+  and `MarsHealthComponent` support them.
 - `Audio/MarsVoiceLibrary`: uses the imported SoundWave if there is one. Otherwise it parses `RawAudio/*.wav` into a `USoundWaveProcedural`.
-  Otherwise there are subtitles only.
-- `UI/MarsHUD`: a Canvas HUD, so no UMG assets are needed. `Camera/MarsShowCamera`: director, wide-orbit and low-action camera modes, plus trauma shake.
+  Otherwise there are subtitles only. Every spoken line shows a HUD subtitle either way.
+- `UI/MarsHUD`: a Canvas HUD, so no UMG assets are needed. Captions shrink to fit long lines. `Camera/MarsShowCamera`: director,
+  wide-orbit and low-action camera modes, plus trauma shake.
 
 Changing the show: edit `Config/DefaultGame.ini` (`[/Script/MarsHelloWorld.MarsShowSettings]`). Change `RandomSeed` for a different
-landscape and different fight choices. Set `AutoRestartSeconds=8` to loop the show forever.
+landscape, a different Phil / Tyler / not-Kevin assignment, a different first accusation, and different fight choices.
+Set `AutoRestartSeconds=8` to loop the show forever.
 
 ## How this was built
 
@@ -110,14 +122,39 @@ knowledge, as a test of learning a field from zero and shipping a real product:
 
 ## Voices
 
-`RawAudio/` holds three 44.1 kHz, 16-bit mono WAVs, loudness-normalised to −16 LUFS. They were made by
-`Tools/voice/generate_voices.py` (re-runnable):
+`RawAudio/` holds 44.1 kHz, 16-bit mono WAVs, loudness-normalised to −16 LUFS: **14 lines × 3 characters**.
+They were made by `Tools/voice/generate_voices.py` (re-runnable). Each character keeps a single Piper
+speaker and the same effects on every line. Keep the spoken texts in sync with
+`Source/MarsHelloWorld/Dialogue/MarsDialogueTable.cpp`.
 
-| File | Base voice | Effects | Length |
+| Character | Base voice | Effects |
+|---|---|---|
+| Martian | Piper `en_US-libritts_r-medium`, speaker 700, slowed | pitched down about 4 semitones, vibrato, cavern echo |
+| X-Bot | same model, speaker 333 | 55 Hz ring modulation, 6-bit crush, sample-and-hold, metallic comb |
+| Venusian | same model, speaker 850 | pitched up about 5 semitones, chorus, long airy echoes |
+
+File names are `VO_<Martian|XBot|Venusian>_<LineId>.wav`. The full script:
+
+| Line id | Martian | X-Bot | Venusian |
 |---|---|---|---|
-| `VO_Martian_HelloWorld.wav` | Piper `en_US-libritts_r-medium`, speaker 700, slowed | pitched down about 4 semitones, vibrato, cavern echo | 2.06 s |
-| `VO_XBot_HelloWorld.wav` | same model, speaker 333 | 55 Hz ring modulation, 6-bit crush, sample-and-hold, metallic comb | 2.04 s |
-| `VO_Venusian_HelloWorld.wav` | same model, speaker 850 | pitched up about 5 semitones, chorus, long airy echoes | 1.36 s |
+| ArrivalHello | Hello world, I'm looking for Kevin. | Hello, world. I'm looking for Kevin. | Hello world, I'm looking for Kevin. |
+| ArrivalSeenKevin | Have you seen Kevin? | Have you seen Kevin? | Have you seen Kevin? |
+| ArrivalVariant | Hello, world! Kevin was supposed to meet me here. | Hello, world. Scanning for Kevin. | Hello, world! I'm looking for someone called Kevin. |
+| AskAreYouKevin | Are you Kevin? | Are you Kevin? | Are you Kevin? |
+| AskAreYouKevinVariant | Wait. Are you Kevin? | Identify. Are you Kevin? | You there... are you Kevin? |
+| DenyPhil | I'm Phil. | I'm Phil. | I'm Phil. |
+| DenyTyler | I'm Tyler. | I'm Tyler. | I'm Tyler. |
+| DenyOther | Kevin? No. Not me. | Negative. I am not Kevin. | Oh, no, I'm not Kevin. |
+| KeepLooking | Still looking for Kevin. | Kevin is not in this scan. | Has anyone seen Kevin? |
+| Accuse | Wait... you're Kevin! | Target identified. You are Kevin. | I knew it! You're Kevin! |
+| AccuseVariant | That's Kevin! Get him! | Kevin confirmed. Engaging. | Kevin! I found Kevin! |
+| AllAreKevin | You're all Kevin! | Recalculating. All units are Kevin. | Wait... you're ALL Kevin! |
+| KillKevin | I killed Kevin! | I killed Kevin! | I killed Kevin! |
+| KillKevinVariant | Got him! I killed Kevin! | Kevin eliminated. | I killed Kevin! Finally! |
+
+Which arrival line each character uses, who claims to be Phil or Tyler (the third is the evasive denial),
+and who accuses whom first, are all rolled from `RandomSeed`. The original one-line greetings are in
+`RawAudio/Archive/HelloWorld/`.
 
 ## Credits and licenses
 

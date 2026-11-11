@@ -5,7 +5,7 @@
 namespace MarsTags
 {
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(State_Entering,   "Mars.State.Entering",   "Running / flying / hovering into the arena");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(State_Greeting,   "Mars.State.Greeting",   "Saying hello world");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(State_Greeting,   "Mars.State.Greeting",   "Holding for a conversation line");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(State_Ready,      "Mars.State.Ready",      "Arrived, waiting for the fight");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(State_Fighting,   "Mars.State.Fighting",   "Free-for-all combat");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(State_Dead,       "Mars.State.Dead",       "Collapsed");

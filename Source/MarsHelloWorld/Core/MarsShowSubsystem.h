@@ -8,13 +8,14 @@
 
 class ACombatantCharacter;
 class AMarsTerrain;
+class UMarsConversationDirector;
 
 UENUM(BlueprintType)
 enum class EMarsShowPhase : uint8
 {
 	Arrivals,
-	Greetings,
-	Countdown,
+	Conversation,
+	Accusation,
 	Fight,
 	Victory
 };
@@ -67,7 +68,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMarsCombatantDied, ACombatantCha
 
 /**
  * The show's referee and stage manager (a world subsystem, not a singleton):
- * registers combatants, serialises the "hello world" greetings, runs the 3-2-1 countdown,
+ * registers combatants, owns the conversation director (Kevin hunt, accusation, kill lines),
  * scales damage for sudden death, declares the winner, and holds the HUD's captions/banners.
  */
 UCLASS()
@@ -82,12 +83,15 @@ public:
 	void BeginShow(int32 InExpectedCombatants, int32 InSeed);
 	void SetTerrain(AMarsTerrain* InTerrain) { Terrain = InTerrain; }
 
-	// --- Combatant callbacks ---------------------------------------------------------------------
+	// --- Combatant / director callbacks ----------------------------------------------------------
 	void RegisterCombatant(ACombatantCharacter* Combatant);
 	void NotifyArrived(ACombatantCharacter* Combatant);
-	void NotifyGreetingFinished(ACombatantCharacter* Combatant);
 	void NotifyDeath(ACombatantCharacter* Victim, ACombatantCharacter* Killer);
 	void ReportDamage(ACombatantCharacter* Victim, float Amount, const FVector& Where, const FLinearColor& Color);
+	void SetCurrentSpeaker(ACombatantCharacter* Combatant);
+	void SetPhase(EMarsShowPhase NewPhase);
+	void MarkFightClockStarted();
+	void StartFight();
 
 	// --- Presentation ---------------------------------------------------------------------------
 	void ShowCaption(const FText& Speaker, const FText& Line, const FLinearColor& Color, float Duration);
@@ -123,11 +127,6 @@ public:
 	FOnMarsCombatantDied OnCombatantDied;
 
 private:
-	void SetPhase(EMarsShowPhase NewPhase);
-	void TryStartNextGreeting();
-	void StartCountdown();
-	void CountdownTick();
-	void StartFight();
 	void CheckForWinner();
 	void ForceStragglers();
 	float Now() const;
@@ -136,10 +135,7 @@ private:
 	TArray<TObjectPtr<ACombatantCharacter>> Combatants;
 
 	UPROPERTY(Transient)
-	TArray<TObjectPtr<ACombatantCharacter>> GreetingQueue;
-
-	UPROPERTY(Transient)
-	TArray<TObjectPtr<ACombatantCharacter>> Greeted;
+	TObjectPtr<UMarsConversationDirector> Director;
 
 	TWeakObjectPtr<ACombatantCharacter> CurrentSpeaker;
 	TWeakObjectPtr<ACombatantCharacter> Winner;
@@ -150,7 +146,6 @@ private:
 	float FightStartTime = -1.f;
 	int32 ExpectedCombatants = 3;
 	int32 Seed = 801;
-	int32 CountdownValue = 3;
 	float CameraTrauma = 0.f;
 	float BannerScale = 4.f;
 
@@ -159,7 +154,6 @@ private:
 	TArray<FMarsFloatingText> FloatingTexts;
 	TArray<FMarsCaption> KillFeed;
 
-	FTimerHandle CountdownTimer;
 	FTimerHandle StragglerTimer;
 	FTimerHandle RestartTimer;
 };

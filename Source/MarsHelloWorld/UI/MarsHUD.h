@@ -10,7 +10,7 @@ class UFont;
 class UMarsShowSubsystem;
 
 /**
- * Canvas HUD (no UMG assets needed): banners, "hello world" subtitles, health bars over heads,
+ * Canvas HUD (no UMG assets needed): banners, dialogue subtitles, health bars over heads,
  * rising damage numbers, kill feed, fight clock / sudden death, controls help.
  */
 UCLASS()

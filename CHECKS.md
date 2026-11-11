@@ -22,17 +22,32 @@ This project was written without an Unreal Engine install. Work through this lis
 - [ ] **Exposure**: not blown out or too dark. Tune `AutoExposureBias` in MarsShowCamera and the sun intensity (4.6).
 - [ ] **BasicShapeMaterial has a "Color" vector parameter** (fallback tinting before `mars_setup.py` runs). If not, everything
       is grey until the setup script runs.
-- [ ] **Voices**: the imported SoundWaves play. Before setup, the `USoundWaveProcedural` fallback plays from `RawAudio/`.
+- [ ] **Voices**: each table line's imported SoundWave plays in that character's voice. Before setup, the
+      `USoundWaveProcedural` fallback plays from `RawAudio/VO_<Species>_<LineId>.wav`. Missing audio must not stall
+      the show (subtitle only).
 - [ ] **Packaged build voices**: `RawAudio/` is not staged. Packaged builds rely on `/Game/Audio`, which is cooked via
-      `DirectoriesToAlwaysCook`, so make sure the build scripts' `mars_setup.py` step succeeded.
+      `DirectoriesToAlwaysCook`, so make sure the build scripts' `mars_setup.py` step imported every new line
+      (it scans `RawAudio/*.wav` and skips `RawAudio/Archive/`).
 - [ ] **Cooking engine content**: `/Engine/BasicShapes` is cooked (DirectoriesToAlwaysCook) so bodies appear in packaged builds.
 - [ ] **Entrances**: the Martian runs in, X-Bot flies in and lands, the Venusian hovers in and stays flying (knockback uses
       `KickVelocity` so it never drops into Falling). The 25 s straggler timer teleports anyone stuck.
-- [ ] **Greetings** happen one at a time with subtitles. The camera frames each speaker's face (check the forward axis of each body).
+- [ ] **Conversation**: each arriver says an arrival line (Hello world / Have you seen Kevin? / a variant) with a
+      subtitle. As the second and third show up, someone already present asks "Are you Kevin?" and the newcomer
+      answers with their seeded identity (I'm Phil / I'm Tyler / an evasive denial). The first arriver is asked
+      after everyone has landed so all three identities are heard. Then one or two "still looking" lines.
+      Lines play one at a time; the camera frames the current speaker.
+- [ ] **Accusation is seeded and not a 3-2-1 countdown**: after the search, one combatant accuses another
+      ("you're Kevin!") and opens fire on them. The others then fight the accuser. Then the others say
+      "you're all Kevin!" (or their variant) and it becomes a free-for-all. Changing `RandomSeed` changes
+      who is Phil/Tyler/not-Kevin and who accuses whom. Same seed should repeat the same assignment.
+- [ ] **Kill lines**: on each KO the killer yells "I killed Kevin!" (or a variant) with a subtitle, including
+      the last kill before the victory banner. The victory celebration no longer replays a hello line.
+- [ ] **Caption fit**: longer lines still fit at 1080p (the HUD shrinks the subtitle to 90% of the screen width).
 - [ ] **Projectile collision**: projectiles hit pawns (overlap) and terrain/rocks (block) and don't hit their owner.
 - [ ] **Melee range and knockback** feel right under Mars gravity (fighters may float off; the arena leash at 1500 uu pulls them back).
 - [ ] **Death**: detached body parts simulate physics. Parts use `PhysicsActor` collision; check they don't explode through the ground.
-- [ ] **Show length**: about 60 to 90 s. Tune damage/HP in the combatant constructors, or `SuddenDeathAfterSeconds`.
+- [ ] **Show length**: about 80 to 120 s (conversation is longer than the old one-line hello). Tune
+      `ConversationGapSeconds` / `OthersJoinAfterSeconds` / `FreeForAllAfterSeconds`, damage/HP, or `SuddenDeathAfterSeconds`.
 - [ ] **HUD**: the Canvas font sizes are readable at 1080p and 4K.
 - [ ] **Python setup**: material expression names, `MaterialProperty.MP_*` enums, `LevelEditorSubsystem.new_level`, and the
       `sound_group` property in UE 5.8's Python API.

@@ -12,7 +12,7 @@
 ACombatantMartian::ACombatantMartian()
 {
 	Profile.DisplayName = LOCTEXT("MartianName", "Martian");
-	Profile.GreetingLine = LOCTEXT("MartianHello", "Hello, world!");
+	Profile.GreetingLine = LOCTEXT("MartianHello", "Hello world, I'm looking for Kevin.");
 	Profile.Species = MarsTags::Species_Martian;
 	Profile.UIColor = FLinearColor(0.35f, 1.f, 0.3f);
 	Profile.MaxHealth = 640.f;
@@ -20,8 +20,8 @@ ACombatantMartian::ACombatantMartian()
 	Profile.MoveSpeed = 700.f;
 	Profile.PreferredRange = 520.f;
 	Profile.Aggression = 0.8f;
-	Profile.VoiceAsset = FSoftObjectPath(TEXT("/Game/Audio/VO_Martian_HelloWorld.VO_Martian_HelloWorld"));
-	Profile.RawVoiceFile = TEXT("VO_Martian_HelloWorld.wav");
+	Profile.VoiceAsset = FSoftObjectPath(TEXT("/Game/Audio/VO_Martian_ArrivalHello.VO_Martian_ArrivalHello"));
+	Profile.RawVoiceFile = TEXT("VO_Martian_ArrivalHello.wav");
 
 	FCombatantAttack Claw;
 	Claw.Name = TEXT("ClawSlam");
