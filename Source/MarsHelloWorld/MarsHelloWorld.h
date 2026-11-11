@@ -8,8 +8,8 @@
 MARSHELLOWORLD_API DECLARE_LOG_CATEGORY_EXTERN(LogMars, Log, All);
 
 /**
- * Always writes a show event (stdout + LogMars). UE_LOG is compiled out of
- * Shipping when the target shares UnrealGame, so headless packaged runs
- * still need this.
+ * Always writes a show event (stdout + LogMars + Saved/Logs/MarsShow.log).
+ * UE_LOG is compiled out of Shipping when the target shares UnrealGame, so
+ * headless or Windows-GUI packaged runs still need this.
  */
 MARSHELLOWORLD_API void MarsShowLog(const FString& Line);
