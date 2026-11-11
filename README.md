@@ -32,6 +32,18 @@ and HUD are all built by code when the game starts. The WAV voice lines in `RawA
 the only media (retired takes stay under `RawAudio/Archive/`: `HelloWorld/`, `AstronautRadio/`,
 `DenyOther/`).
 
+## Download (Windows)
+
+A packaged 64-bit Windows build is on the [v1.0.0 release](https://github.com/Phil801/mars-hello-world-ue5/releases/tag/v1.0.0):
+
+- [Download MarsHelloWorld-Windows.zip](https://github.com/Phil801/mars-hello-world-ue5/releases/download/v1.0.0/MarsHelloWorld-Windows.zip)
+
+1. Unzip the archive.
+2. Run `Windows\MarsHelloWorld.exe`.
+3. If Windows SmartScreen says the app is unrecognized, click **More info**, then **Run anyway**.
+
+You need a 64-bit Windows PC with a DirectX 12 GPU. To build from source instead, see [Run it on Windows](#run-it-on-windows) below.
+
 ## Run it on Windows
 
 1. Install **Unreal Engine 5.8** from the Epic Games Launcher (Library → Engine Versions → +). Also install
