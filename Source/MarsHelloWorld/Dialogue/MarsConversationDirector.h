@@ -109,7 +109,7 @@ private:
 	TWeakObjectPtr<ACombatantCharacter> Accused;
 	TWeakObjectPtr<ACombatantCharacter> Player;
 
-	EMarsClaimedName ClaimedNames[3] = { EMarsClaimedName::Phil, EMarsClaimedName::Tyler, EMarsClaimedName::NotKevin };
+	EMarsClaimedName ClaimedNames[3] = { EMarsClaimedName::Phil, EMarsClaimedName::Tyler, EMarsClaimedName::Danyon };
 	FName ArrivalChoice[3];
 	EMarsSpeakerId AccuserId = EMarsSpeakerId::Martian;
 	EMarsSpeakerId AccusedId = EMarsSpeakerId::XBot;

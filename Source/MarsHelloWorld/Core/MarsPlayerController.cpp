@@ -248,7 +248,17 @@ void AMarsPlayerController::OnToggleHelp()
 
 void AMarsPlayerController::OnQuit()
 {
+	RequestQuit();
+}
+
+void AMarsPlayerController::RequestQuit()
+{
 	UKismetSystemLibrary::QuitGame(this, this, EQuitPreference::Quit, false);
+}
+
+void AMarsPlayerController::RequestRestart()
+{
+	OnRestart();
 }
 
 void AMarsPlayerController::OnMoveForward(const FInputActionValue& Value)

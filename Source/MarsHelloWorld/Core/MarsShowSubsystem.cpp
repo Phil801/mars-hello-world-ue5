@@ -3,6 +3,7 @@
 #include "Core/MarsShowSubsystem.h"
 #include "Core/MarsShowSettings.h"
 #include "Core/MarsPlayerController.h"
+#include "Audio/MarsMusicActor.h"
 #include "Dialogue/MarsConversationDirector.h"
 #include "Combat/CombatantCharacter.h"
 #include "Combat/MarsHealthComponent.h"
@@ -32,6 +33,7 @@ void UMarsShowSubsystem::Deinitialize()
 		}
 	}
 	Director = nullptr;
+	Music = nullptr;
 	Super::Deinitialize();
 }
 
@@ -57,6 +59,21 @@ void UMarsShowSubsystem::BeginShow(int32 InExpectedCombatants, int32 InSeed)
 
 	// If anyone is still not in place after 25 s (stuck on a rock, fell through the world...), pull them in.
 	GetWorld()->GetTimerManager().SetTimer(StragglerTimer, this, &UMarsShowSubsystem::ForceStragglers, 25.f, false);
+
+	if (UWorld* World = GetWorld())
+	{
+		if (!IsValid(Music))
+		{
+			FActorSpawnParameters Spawn;
+			Spawn.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			Spawn.Name = TEXT("MarsMusic");
+			Music = World->SpawnActor<AMarsMusicActor>(FVector::ZeroVector, FRotator::ZeroRotator, Spawn);
+		}
+		if (Music)
+		{
+			Music->StartAmbient();
+		}
+	}
 }
 
 void UMarsShowSubsystem::RegisterCombatant(ACombatantCharacter* Combatant)
@@ -137,6 +154,30 @@ void UMarsShowSubsystem::NotifyDeath(ACombatantCharacter* Victim, ACombatantChar
 	CheckForWinner();
 }
 
+void UMarsShowSubsystem::NotifyFirstShot()
+{
+	if (Music)
+	{
+		Music->NotifyFirstShot();
+	}
+}
+
+void UMarsShowSubsystem::NotifyVoiceStarted(float DurationSeconds)
+{
+	if (Music)
+	{
+		Music->NotifyVoice(DurationSeconds);
+	}
+}
+
+void UMarsShowSubsystem::PlayVictoryMusic()
+{
+	if (Music)
+	{
+		Music->PlayVictory();
+	}
+}
+
 void UMarsShowSubsystem::CheckForWinner()
 {
 	if (Phase == EMarsShowPhase::Victory)
@@ -150,6 +191,7 @@ void UMarsShowSubsystem::CheckForWinner()
 	}
 
 	SetPhase(EMarsShowPhase::Victory);
+	PlayVictoryMusic();
 	if (ACombatantCharacter* Player = GetPlayerAstronaut())
 	{
 		Winner = Player;

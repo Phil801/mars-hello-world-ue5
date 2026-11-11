@@ -37,7 +37,7 @@ CHARACTERS = {
         "AskAreYouKevinVariant": "Wait. Are you Kevin?",
         "DenyPhil": "I'm Phil.",
         "DenyTyler": "I'm Tyler.",
-        "DenyOther": "Kevin? No. Not me.",
+        "DenyDanyon": "I'm Danyon.",
         "KeepLooking": "Still looking for Kevin.",
         "Accuse": "Wait... you're Kevin!",
         "AccuseVariant": "That's Kevin! Get him!",
@@ -53,7 +53,7 @@ CHARACTERS = {
         "AskAreYouKevinVariant": "Identify. Are you Kevin?",
         "DenyPhil": "I'm Phil.",
         "DenyTyler": "I'm Tyler.",
-        "DenyOther": "Negative. I am not Kevin.",
+        "DenyDanyon": "I'm Danyon.",
         "KeepLooking": "Kevin is not in this scan.",
         "Accuse": "Target identified. You are Kevin.",
         "AccuseVariant": "Kevin confirmed. Engaging.",
@@ -69,7 +69,7 @@ CHARACTERS = {
         "AskAreYouKevinVariant": "You there... are you Kevin?",
         "DenyPhil": "I'm Phil.",
         "DenyTyler": "I'm Tyler.",
-        "DenyOther": "Oh, no, I'm not Kevin.",
+        "DenyDanyon": "I'm Danyon.",
         "KeepLooking": "Has anyone seen Kevin?",
         "Accuse": "I knew it! You're Kevin!",
         "AccuseVariant": "Kevin! I found Kevin!",
@@ -80,7 +80,7 @@ CHARACTERS = {
     "Astronaut": (199, 1.00, {
         "DenyKevin": "No!",
         "DenyKevinVariant": "No! I'm not Kevin.",
-        "VictoryHateKevin": "I hate it when people call me Kevin.",
+        "VictoryHateKevin": "I hate it when things call me Kevin. I go by Kev.",
     }),
 }
 
@@ -95,8 +95,8 @@ FFMPEG = {
     "Venusian": "asetrate=44100*1.33,aresample=44100,atempo=0.85,"
                 "chorus=0.6:0.9:50|60|70:0.4|0.32|0.3:0.25|0.4|0.3:2|2.3|1.3,"
                 "aecho=0.8:0.6:240|480|720:0.35|0.25|0.15,highpass=f=220,loudnorm=I=-16:TP=-1.5",
-    # Earth radio: band-limited comms, short cabin echo, no pitch change
-    "Astronaut": "highpass=f=400,lowpass=f=2800,treble=g=3,aecho=0.7:0.5:25:0.2,loudnorm=I=-16:TP=-1.5",
+    # Natural human: no character effects, just loudness normalisation
+    "Astronaut": "loudnorm=I=-16:TP=-1.5",
 }
 
 
@@ -123,6 +123,12 @@ def robotize(x, sr):
     hold = 3                                         # sample-rate reduction (zero-order hold)
     y = np.repeat(y[::hold], hold)[: len(x)]
     return y
+
+
+# Subtitle text stays "I'm Danyon."; Piper reads a hyphenated pronunciation (DAN-yun).
+PIPER_PRONUNCIATION = {
+    "DenyDanyon": "I'm Dan-yun.",
+}
 
 
 def synthesize(piper, model, name, spk, ls, text, out_path, tmp):
@@ -158,7 +164,7 @@ def main():
                 if wanted and key != wanted:
                     continue
                 out = os.path.join(a.out, f"VO_{name}_{line_id}.wav")
-                synthesize(a.piper, a.model, name, spk, ls, text, out, tmp)
+                synthesize(a.piper, a.model, name, spk, ls, PIPER_PRONUNCIATION.get(line_id, text), out, tmp)
                 print("wrote", out)
                 wrote += 1
     if wanted and wrote == 0:

@@ -44,6 +44,8 @@ public:
 	EMarsViewMode GetViewMode() const { return ViewMode; }
 	bool IsVictoryUi() const { return bVictoryUi; }
 	void EnterVictoryUi();
+	void RequestRestart();
+	void RequestQuit();
 
 	/** Mouse look scale. Applied in OnLook. */
 	UPROPERTY(EditDefaultsOnly, Category = "Input")

@@ -437,6 +437,10 @@ float ACombatantCharacter::SpeakLine(FName LineId, ACombatantCharacter* AddressT
 	{
 		Show->ShowCaption(Profile.DisplayName, Spoken, Profile.UIColor, Duration + 0.6f);
 		Show->AddFloatingText(GetHeadPoint() + FVector(0.f, 0.f, 40.f), Spoken.ToString(), Profile.UIColor, 1.4f, Duration + 0.6f);
+		if (Voice)
+		{
+			Show->NotifyVoiceStarted(Duration);
+		}
 	}
 
 	const float HoldTime = Duration + 0.35f;
@@ -682,6 +686,10 @@ bool ACombatantCharacter::TryAttack()
 void ACombatantCharacter::ExecuteAttack(const FCombatantAttack& Attack)
 {
 	OnAttackFired(Attack);
+	if (UMarsShowSubsystem* Show = GetShow())
+	{
+		Show->NotifyFirstShot();
+	}
 	switch (Attack.Kind)
 	{
 	case EAttackKind::Melee:      ExecuteMelee(Attack, Target); break;

@@ -16,13 +16,13 @@ enum class EMarsSpeakerId : uint8
 	Astronaut
 };
 
-/** The name a combatant gives when asked "Are you Kevin?" Assigned at random (by show seed). */
+/** The name a combatant gives when asked "Are you Kevin?" Assigned at random (by show seed), no duplicates. */
 UENUM(BlueprintType)
 enum class EMarsClaimedName : uint8
 {
 	Phil,
 	Tyler,
-	NotKevin
+	Danyon
 };
 
 /**
@@ -59,7 +59,8 @@ namespace MarsDialogueIds
 	extern const FName AskAreYouKevinVariant;
 	extern const FName DenyPhil;
 	extern const FName DenyTyler;
-	extern const FName DenyOther;
+	extern const FName DenyOther;   // retired (archived WAVs); kept so old ids still resolve
+	extern const FName DenyDanyon;
 	extern const FName KeepLooking;
 	extern const FName Accuse;
 	extern const FName AccuseVariant;
@@ -77,7 +78,7 @@ namespace MarsDialogue
 	MARSHELLOWORLD_API const TCHAR* SpeakerLabel(EMarsSpeakerId Speaker);
 	MARSHELLOWORLD_API const TCHAR* ClaimedNameLabel(EMarsClaimedName Name);
 
-	/** Identity line for a claimed name: DenyPhil, DenyTyler, or DenyOther. */
+	/** Identity line for a claimed name: DenyPhil, DenyTyler, or DenyDanyon. */
 	MARSHELLOWORLD_API FName IdentityLineId(EMarsClaimedName Name);
 
 	/** The three arrival-line variants, in table order. */

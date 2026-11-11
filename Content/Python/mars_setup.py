@@ -3,6 +3,7 @@ Mars Hello World - one-shot editor setup (UE 5.8 Python, PythonScriptPlugin + Ed
 
 Creates the few binary assets a C++-only repo cannot ship as text:
   * /Game/Audio/VO_<Species>_<LineId>      - SoundWaves imported from RawAudio/*.wav
+  * /Game/Audio/Music/MUS_*                - soundtrack imported from RawAudio/Music/*.wav
   * /Game/Materials/M_MarsGround          - vertex-colour ground (the procedural terrain paints rust colours)
   * /Game/Materials/M_MarsSurface         - "Color" param base colour, "Glow" param emissive
   * /Game/Materials/M_MarsEmissive        - same but glowing by default (eyes, flames, projectiles)
@@ -21,8 +22,10 @@ import os
 import unreal
 
 AUDIO_DIR = "/Game/Audio"
+MUSIC_DIR = "/Game/Audio/Music"
 MAT_DIR = "/Game/Materials"
 MAP_PATH = "/Game/Maps/MarsArena"
+LOOPING_MUSIC = {"MUS_AmbientMars", "MUS_Battle"}
 
 asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
 mel = unreal.MaterialEditingLibrary
@@ -76,6 +79,51 @@ def import_voices():
                 pass
             eal.save_loaded_asset(wave)
             log("voice ok: " + asset_name)
+
+
+def import_music():
+    """Import RawAudio/Music/*.wav into /Game/Audio/Music. Archive folders are skipped."""
+    raw_dir = os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "RawAudio", "Music")
+    if not os.path.isdir(raw_dir):
+        unreal.log_warning("[MarsSetup] no music folder at " + raw_dir)
+        return
+    wavs = [n for n in sorted(os.listdir(raw_dir)) if n.lower().endswith(".wav")]
+    if not wavs:
+        unreal.log_warning("[MarsSetup] no WAV files in " + raw_dir)
+        return
+    if not eal.does_directory_exist(MUSIC_DIR):
+        eal.make_directory(MUSIC_DIR)
+    tasks = []
+    asset_names = []
+    for file_name in wavs:
+        path = os.path.join(raw_dir, file_name)
+        asset_name = os.path.splitext(file_name)[0]
+        asset_names.append(asset_name)
+        task = unreal.AssetImportTask()
+        task.set_editor_property("filename", path)
+        task.set_editor_property("destination_path", MUSIC_DIR)
+        task.set_editor_property("destination_name", asset_name)
+        task.set_editor_property("automated", True)
+        task.set_editor_property("replace_existing", True)
+        task.set_editor_property("save", True)
+        tasks.append(task)
+    if tasks:
+        asset_tools.import_asset_tasks(tasks)
+    for asset_name in asset_names:
+        wave = eal.load_asset(MUSIC_DIR + "/" + asset_name)
+        if not wave:
+            continue
+        try:
+            wave.set_editor_property("sound_group", unreal.SoundGroup.SOUNDGROUP_MUSIC)
+        except Exception:
+            pass
+        if asset_name in LOOPING_MUSIC:
+            try:
+                wave.set_editor_property("looping", True)
+            except Exception:
+                pass
+        eal.save_loaded_asset(wave)
+        log("music ok: " + asset_name)
 
 
 def get_or_create_material(name):
@@ -142,10 +190,11 @@ def create_map():
 
 
 def main():
-    for d in (AUDIO_DIR, MAT_DIR, "/Game/Maps"):
+    for d in (AUDIO_DIR, MUSIC_DIR, MAT_DIR, "/Game/Maps"):
         if not eal.does_directory_exist(d):
             eal.make_directory(d)
     import_voices()
+    import_music()
     ground_material()
     color_glow_material("M_MarsSurface", unreal.LinearColor(0.5, 0.5, 0.5, 1.0), 0.0, 0.6, 0.0)
     color_glow_material("M_MarsEmissive", unreal.LinearColor(1.0, 0.6, 0.2, 1.0), 6.0, 0.4, 0.0)

@@ -13,6 +13,7 @@ const FName MarsDialogueIds::AskAreYouKevinVariant(TEXT("AskAreYouKevinVariant")
 const FName MarsDialogueIds::DenyPhil(TEXT("DenyPhil"));
 const FName MarsDialogueIds::DenyTyler(TEXT("DenyTyler"));
 const FName MarsDialogueIds::DenyOther(TEXT("DenyOther"));
+const FName MarsDialogueIds::DenyDanyon(TEXT("DenyDanyon"));
 const FName MarsDialogueIds::KeepLooking(TEXT("KeepLooking"));
 const FName MarsDialogueIds::Accuse(TEXT("Accuse"));
 const FName MarsDialogueIds::AccuseVariant(TEXT("AccuseVariant"));
@@ -58,7 +59,7 @@ namespace
 				MakeLine(MarsDialogueIds::AskAreYouKevinVariant,  LOCTEXT("Martian_AskAreYouKevinVariant", "Wait. Are you Kevin?"), TEXT("VO_Martian_AskAreYouKevinVariant")),
 				MakeLine(MarsDialogueIds::DenyPhil,               LOCTEXT("Martian_DenyPhil", "I'm Phil."), TEXT("VO_Martian_DenyPhil")),
 				MakeLine(MarsDialogueIds::DenyTyler,              LOCTEXT("Martian_DenyTyler", "I'm Tyler."), TEXT("VO_Martian_DenyTyler")),
-				MakeLine(MarsDialogueIds::DenyOther,              LOCTEXT("Martian_DenyOther", "Kevin? No. Not me."), TEXT("VO_Martian_DenyOther")),
+				MakeLine(MarsDialogueIds::DenyDanyon,             LOCTEXT("Martian_DenyDanyon", "I'm Danyon."), TEXT("VO_Martian_DenyDanyon")),
 				MakeLine(MarsDialogueIds::KeepLooking,            LOCTEXT("Martian_KeepLooking", "Still looking for Kevin."), TEXT("VO_Martian_KeepLooking")),
 				MakeLine(MarsDialogueIds::Accuse,                 LOCTEXT("Martian_Accuse", "Wait... you're Kevin!"), TEXT("VO_Martian_Accuse")),
 				MakeLine(MarsDialogueIds::AccuseVariant,          LOCTEXT("Martian_AccuseVariant", "That's Kevin! Get him!"), TEXT("VO_Martian_AccuseVariant")),
@@ -74,7 +75,7 @@ namespace
 				MakeLine(MarsDialogueIds::AskAreYouKevinVariant,  LOCTEXT("XBot_AskAreYouKevinVariant", "Identify. Are you Kevin?"), TEXT("VO_XBot_AskAreYouKevinVariant")),
 				MakeLine(MarsDialogueIds::DenyPhil,               LOCTEXT("XBot_DenyPhil", "I'm Phil."), TEXT("VO_XBot_DenyPhil")),
 				MakeLine(MarsDialogueIds::DenyTyler,              LOCTEXT("XBot_DenyTyler", "I'm Tyler."), TEXT("VO_XBot_DenyTyler")),
-				MakeLine(MarsDialogueIds::DenyOther,              LOCTEXT("XBot_DenyOther", "Negative. I am not Kevin."), TEXT("VO_XBot_DenyOther")),
+				MakeLine(MarsDialogueIds::DenyDanyon,             LOCTEXT("XBot_DenyDanyon", "I'm Danyon."), TEXT("VO_XBot_DenyDanyon")),
 				MakeLine(MarsDialogueIds::KeepLooking,            LOCTEXT("XBot_KeepLooking", "Kevin is not in this scan."), TEXT("VO_XBot_KeepLooking")),
 				MakeLine(MarsDialogueIds::Accuse,                 LOCTEXT("XBot_Accuse", "Target identified. You are Kevin."), TEXT("VO_XBot_Accuse")),
 				MakeLine(MarsDialogueIds::AccuseVariant,          LOCTEXT("XBot_AccuseVariant", "Kevin confirmed. Engaging."), TEXT("VO_XBot_AccuseVariant")),
@@ -90,7 +91,7 @@ namespace
 				MakeLine(MarsDialogueIds::AskAreYouKevinVariant,  LOCTEXT("Venusian_AskAreYouKevinVariant", "You there... are you Kevin?"), TEXT("VO_Venusian_AskAreYouKevinVariant")),
 				MakeLine(MarsDialogueIds::DenyPhil,               LOCTEXT("Venusian_DenyPhil", "I'm Phil."), TEXT("VO_Venusian_DenyPhil")),
 				MakeLine(MarsDialogueIds::DenyTyler,              LOCTEXT("Venusian_DenyTyler", "I'm Tyler."), TEXT("VO_Venusian_DenyTyler")),
-				MakeLine(MarsDialogueIds::DenyOther,              LOCTEXT("Venusian_DenyOther", "Oh, no, I'm not Kevin."), TEXT("VO_Venusian_DenyOther")),
+				MakeLine(MarsDialogueIds::DenyDanyon,             LOCTEXT("Venusian_DenyDanyon", "I'm Danyon."), TEXT("VO_Venusian_DenyDanyon")),
 				MakeLine(MarsDialogueIds::KeepLooking,            LOCTEXT("Venusian_KeepLooking", "Has anyone seen Kevin?"), TEXT("VO_Venusian_KeepLooking")),
 				MakeLine(MarsDialogueIds::Accuse,                 LOCTEXT("Venusian_Accuse", "I knew it! You're Kevin!"), TEXT("VO_Venusian_Accuse")),
 				MakeLine(MarsDialogueIds::AccuseVariant,          LOCTEXT("Venusian_AccuseVariant", "Kevin! I found Kevin!"), TEXT("VO_Venusian_AccuseVariant")),
@@ -101,7 +102,7 @@ namespace
 			{ EMarsSpeakerId::Astronaut, {
 				MakeLine(MarsDialogueIds::DenyKevin,              LOCTEXT("Astronaut_DenyKevin", "No!"), TEXT("VO_Astronaut_DenyKevin")),
 				MakeLine(MarsDialogueIds::DenyKevinVariant,       LOCTEXT("Astronaut_DenyKevinVariant", "No! I'm not Kevin."), TEXT("VO_Astronaut_DenyKevinVariant")),
-				MakeLine(MarsDialogueIds::VictoryHateKevin,       LOCTEXT("Astronaut_VictoryHateKevin", "I hate it when people call me Kevin."), TEXT("VO_Astronaut_VictoryHateKevin")),
+				MakeLine(MarsDialogueIds::VictoryHateKevin,       LOCTEXT("Astronaut_VictoryHateKevin", "I hate it when things call me Kevin. I go by Kev."), TEXT("VO_Astronaut_VictoryHateKevin")),
 			}},
 		};
 		return Table;
@@ -142,7 +143,8 @@ const TCHAR* MarsDialogue::ClaimedNameLabel(EMarsClaimedName Name)
 	{
 	case EMarsClaimedName::Phil: return TEXT("Phil");
 	case EMarsClaimedName::Tyler: return TEXT("Tyler");
-	default: return TEXT("not Kevin");
+	case EMarsClaimedName::Danyon: return TEXT("Danyon");
+	default: return TEXT("Danyon");
 	}
 }
 
@@ -152,7 +154,7 @@ FName MarsDialogue::IdentityLineId(EMarsClaimedName Name)
 	{
 	case EMarsClaimedName::Phil: return MarsDialogueIds::DenyPhil;
 	case EMarsClaimedName::Tyler: return MarsDialogueIds::DenyTyler;
-	default: return MarsDialogueIds::DenyOther;
+	default: return MarsDialogueIds::DenyDanyon;
 	}
 }
 

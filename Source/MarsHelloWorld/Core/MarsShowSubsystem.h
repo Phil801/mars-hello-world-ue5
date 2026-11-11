@@ -7,6 +7,7 @@
 #include "MarsShowSubsystem.generated.h"
 
 class ACombatantCharacter;
+class AMarsMusicActor;
 class AMarsTerrain;
 class UMarsConversationDirector;
 
@@ -93,6 +94,13 @@ public:
 	void MarkFightClockStarted();
 	void StartFight();
 
+	/** Crossfade to the battle loop on the first real shot (accusation or fight). */
+	void NotifyFirstShot();
+	/** Duck the music under a spoken line. */
+	void NotifyVoiceStarted(float DurationSeconds);
+	/** Fade loops out and play the victory sting. */
+	void PlayVictoryMusic();
+
 	// --- Presentation ---------------------------------------------------------------------------
 	void ShowCaption(const FText& Speaker, const FText& Line, const FLinearColor& Color, float Duration);
 	void ShowBanner(const FText& Text, const FLinearColor& Color, float Duration, float Scale = 4.f);
@@ -138,6 +146,9 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMarsConversationDirector> Director;
+
+	UPROPERTY(Transient)
+	TObjectPtr<AMarsMusicActor> Music;
 
 	TWeakObjectPtr<ACombatantCharacter> CurrentSpeaker;
 	TWeakObjectPtr<ACombatantCharacter> Winner;

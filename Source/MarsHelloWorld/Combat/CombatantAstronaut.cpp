@@ -337,6 +337,10 @@ void ACombatantAstronaut::FireWeapon()
 
 	FireCooldown = Attack->Cooldown;
 	OnAttackFired(*Attack);
+	if (UMarsShowSubsystem* Show = GetShow())
+	{
+		Show->NotifyFirstShot();
+	}
 
 	const FVector Start = GetMuzzleLocation();
 	const FVector Aim = FirstPersonCamera->GetComponentLocation() + FirstPersonCamera->GetForwardVector() * 4000.f;

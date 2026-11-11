@@ -49,7 +49,7 @@ void UMarsConversationDirector::Stop()
 void UMarsConversationDirector::AssignRoles()
 {
 	TArray<EMarsClaimedName, TInlineAllocator<3>> Names = {
-		EMarsClaimedName::Phil, EMarsClaimedName::Tyler, EMarsClaimedName::NotKevin
+		EMarsClaimedName::Phil, EMarsClaimedName::Tyler, EMarsClaimedName::Danyon
 	};
 	for (int32 i = Names.Num() - 1; i > 0; --i)
 	{

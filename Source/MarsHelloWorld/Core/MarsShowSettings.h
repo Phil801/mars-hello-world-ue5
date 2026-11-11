@@ -69,4 +69,24 @@ public:
 	/** Restart automatically this many seconds after the victory banner (0 = never). */
 	UPROPERTY(Config, EditAnywhere, Category = "Show")
 	float AutoRestartSeconds = 0.f;
+
+	/** Master scale for ambient, battle, and the victory sting. */
+	UPROPERTY(Config, EditAnywhere, Category = "Music", meta = (ClampMin = "0.0", ClampMax = "2.0"))
+	float MusicMasterVolume = 0.85f;
+
+	/** Linear volume of the calm Mars loop (before master and ducking). */
+	UPROPERTY(Config, EditAnywhere, Category = "Music", meta = (ClampMin = "0.0", ClampMax = "2.0"))
+	float MusicAmbientVolume = 0.42f;
+
+	/** Linear volume of the 132 BPM battle loop (before master and ducking). */
+	UPROPERTY(Config, EditAnywhere, Category = "Music", meta = (ClampMin = "0.0", ClampMax = "2.0"))
+	float MusicBattleVolume = 0.55f;
+
+	/** Linear volume of the victory sting. */
+	UPROPERTY(Config, EditAnywhere, Category = "Music", meta = (ClampMin = "0.0", ClampMax = "2.0"))
+	float MusicStingVolume = 0.72f;
+
+	/** Crossfade length when switching between ambient and battle, in seconds. */
+	UPROPERTY(Config, EditAnywhere, Category = "Music", meta = (ClampMin = "0.05"))
+	float MusicCrossfadeSeconds = 1.25f;
 };

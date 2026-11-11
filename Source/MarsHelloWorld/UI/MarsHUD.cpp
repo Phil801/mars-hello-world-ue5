@@ -57,7 +57,7 @@ void AMarsHUD::DrawHUD()
 	DrawBanner(Show, Now);
 	DrawStatus(Show);
 	DrawKillFeed(Show);
-	DrawRespawnButton(Show);
+	DrawVictoryButtons(Show);
 	DrawHelp();
 }
 
@@ -276,41 +276,69 @@ void AMarsHUD::DrawPlayerHud(UMarsShowSubsystem* Show)
 	DrawRect(FLinearColor(0.3f, 0.8f, 1.f), X, Ys, W * Astro->GetShieldFraction(), H);
 }
 
-void AMarsHUD::DrawRespawnButton(UMarsShowSubsystem* Show)
+void AMarsHUD::DrawVictoryButtons(UMarsShowSubsystem* Show)
 {
 	if (!Show || Show->GetPhase() != EMarsShowPhase::Victory || !PlayerOwner)
 	{
-		bRespawnMouseWasDown = false;
+		bVictoryMouseWasDown = false;
 		return;
 	}
 	const float S = UIScale();
-	const FString Label = TEXT("Respawn");
 	UFont* Font = GEngine->GetMediumFont();
 	const float Scale = 1.8f * S;
-	float TW = 0.f, TH = 0.f;
-	GetTextSize(Label, TW, TH, Font, Scale);
 	const float PadX = 36.f * S;
 	const float PadY = 16.f * S;
-	const float W = TW + PadX * 2.f;
-	const float H = TH + PadY * 2.f;
-	const float X = Canvas->ClipX * 0.5f - W * 0.5f;
+	const float Gap = 28.f * S;
+	const FString RespawnLabel = TEXT("Respawn");
+	const FString QuitLabel = TEXT("Quit");
+	float RespawnTW = 0.f, RespawnTH = 0.f, QuitTW = 0.f, QuitTH = 0.f;
+	GetTextSize(RespawnLabel, RespawnTW, RespawnTH, Font, Scale);
+	GetTextSize(QuitLabel, QuitTW, QuitTH, Font, Scale);
+	const float RespawnW = RespawnTW + PadX * 2.f;
+	const float QuitW = QuitTW + PadX * 2.f;
+	const float H = FMath::Max(RespawnTH, QuitTH) + PadY * 2.f;
+	const float TotalW = RespawnW + Gap + QuitW;
 	const float Y = Canvas->ClipY * 0.62f;
+	const float RespawnX = Canvas->ClipX * 0.5f - TotalW * 0.5f;
+	const float QuitX = RespawnX + RespawnW + Gap;
 
 	float MX = 0.f, MY = 0.f;
 	const bool bHaveMouse = PlayerOwner->GetMousePosition(MX, MY);
-	const bool bHover = bHaveMouse && MX >= X && MX <= X + W && MY >= Y && MY <= Y + H;
-	const FLinearColor Fill = bHover ? FLinearColor(0.95f, 0.55f, 0.15f, 0.95f) : FLinearColor(0.8f, 0.4f, 0.08f, 0.9f);
-	DrawRect(FLinearColor(0.f, 0.f, 0.f, 0.7f), X - 3.f, Y - 3.f, W + 6.f, H + 6.f);
-	DrawRect(Fill, X, Y, W, H);
-	DrawShadowedText(Label, FLinearColor::White, X + PadX, Y + PadY, Font, Scale);
-
 	const bool bDown = PlayerOwner->IsInputKeyDown(EKeys::LeftMouseButton);
-	if (bHover && bDown && !bRespawnMouseWasDown)
+	const bool bPressed = bDown && !bVictoryMouseWasDown;
+
+	auto DrawButton = [&](const FString& Label, float X, float W, const FLinearColor& Base, const FLinearColor& Hover, bool bAction)
 	{
-		UGameplayStatics::SetGlobalTimeDilation(this, 1.f);
-		PlayerOwner->ConsoleCommand(TEXT("RestartLevel"));
+		const bool bHover = bHaveMouse && MX >= X && MX <= X + W && MY >= Y && MY <= Y + H;
+		const FLinearColor Fill = bHover ? Hover : Base;
+		DrawRect(FLinearColor(0.f, 0.f, 0.f, 0.7f), X - 3.f, Y - 3.f, W + 6.f, H + 6.f);
+		DrawRect(Fill, X, Y, W, H);
+		DrawShadowedText(Label, FLinearColor::White, X + PadX, Y + PadY, Font, Scale);
+		return bHover && bAction;
+	};
+
+	if (DrawButton(RespawnLabel, RespawnX, RespawnW,
+		FLinearColor(0.8f, 0.4f, 0.08f, 0.9f), FLinearColor(0.95f, 0.55f, 0.15f, 0.95f), bPressed))
+	{
+		if (AMarsPlayerController* PC = Cast<AMarsPlayerController>(PlayerOwner))
+		{
+			PC->RequestRestart();
+		}
+		else
+		{
+			UGameplayStatics::SetGlobalTimeDilation(this, 1.f);
+			PlayerOwner->ConsoleCommand(TEXT("RestartLevel"));
+		}
 	}
-	bRespawnMouseWasDown = bDown;
+	if (DrawButton(QuitLabel, QuitX, QuitW,
+		FLinearColor(0.22f, 0.2f, 0.18f, 0.92f), FLinearColor(0.38f, 0.32f, 0.28f, 0.95f), bPressed))
+	{
+		if (AMarsPlayerController* PC = Cast<AMarsPlayerController>(PlayerOwner))
+		{
+			PC->RequestQuit();
+		}
+	}
+	bVictoryMouseWasDown = bDown;
 }
 
 void AMarsHUD::DrawHelp()

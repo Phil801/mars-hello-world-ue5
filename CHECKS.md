@@ -24,10 +24,11 @@ This project was written without an Unreal Engine install. Work through this lis
       is grey until the setup script runs.
 - [ ] **Voices**: each table line's imported SoundWave plays in that character's voice. Before setup, the
       `USoundWaveProcedural` fallback plays from `RawAudio/VO_<Species>_<LineId>.wav`. Missing audio must not stall
-      the show (subtitle only).
+      the show (subtitle only). The astronaut should sound like a natural human (no radio band-limit). **DenyDanyon**
+      should be heard as DAN-yun (Piper text "I'm Dan-yun.") while the subtitle reads "I'm Danyon."
 - [ ] **Packaged build voices**: `RawAudio/` is not staged. Packaged builds rely on `/Game/Audio`, which is cooked via
       `DirectoriesToAlwaysCook`, so make sure the build scripts' `mars_setup.py` step imported every new line
-      (it scans `RawAudio/*.wav` and skips `RawAudio/Archive/`).
+      (it scans `RawAudio/*.wav` and skips `RawAudio/Archive/`) and imported `RawAudio/Music/` into `/Game/Audio/Music`.
 - [ ] **Cooking engine content**: `/Engine/BasicShapes` is cooked (DirectoriesToAlwaysCook) so bodies appear in packaged builds.
 - [ ] **Player spawn**: you start in first person as the Earth astronaut in the arena (white/orange suit arms and a rifle
       visible). WASD, mouse look, Space jump, Left Shift sprint, LMB fire all work. Gravity hops feel right.
@@ -37,23 +38,31 @@ This project was written without an Unreal Engine install. Work through this lis
       `KickVelocity` so it never drops into Falling). The 25 s straggler timer teleports anyone stuck. The astronaut is
       already in the arena and is not launched as a fourth arriver.
 - [ ] **Conversation**: each NPC arriver says an arrival line with a subtitle. The first NPC to land asks the
-      astronaut "Are you Kevin?" and the astronaut answers **"No!"** (radio voice). As the second and third
+      astronaut "Are you Kevin?" and the astronaut answers **"No!"** (natural voice). As the second and third
       NPCs show up, someone already present asks them "Are you Kevin?" and they answer with their seeded identity
-      (I'm Phil / I'm Tyler / an evasive denial). The first NPC arriver is asked after everyone has landed so all
-      three identities are heard. Then one or two "still looking" lines. Lines play one at a time.
+      (I'm Phil / I'm Tyler / I'm Danyon, one each, no duplicates). The first NPC arriver is asked after everyone
+      has landed so all three identities are heard. Then one or two "still looking" lines. Lines play one at a time.
 - [ ] **Accusation is seeded and not a 3-2-1 countdown**: after the search, one combatant accuses another
       ("you're Kevin!") and opens fire on them. The others then fight the accuser. Then the others say
       "you're all Kevin!" (or their variant) and it becomes a free-for-all. Changing `RandomSeed` changes
-      who is Phil/Tyler/not-Kevin and who accuses whom. Same seed should repeat the same assignment.
+      who is Phil/Tyler/Danyon and who accuses whom. Same seed should repeat the same assignment.
 - [ ] **Fight targeting**: once the fight starts, NPCs attack the astronaut and each other. They can kill each
       other. The player can kill them with the rifle (only during the fight).
 - [ ] **Shield and immortality**: hits flash a shield overlay and drain the shield first; the shield regenerates
       after a short delay. Health never reaches zero (clamp). The astronaut never plays a death / ragdoll.
 - [ ] **Kill lines**: when an NPC gets a KO they yell "I killed Kevin!" (or a variant) with a subtitle. Player
       kills are silent besides the kill feed.
-- [ ] **Victory**: when all three NPCs are down, the astronaut says **"I hate it when people call me Kevin."**
-      with a subtitle, the YOU WIN banner stays up, and a **Respawn** button (that label, not "Play Again")
-      restarts the round. **R** also restarts. Click the button with the visible cursor.
+- [ ] **Victory**: when all three NPCs are down, the astronaut says **"I hate it when things call me Kevin. I go by Kev."**
+      with a subtitle, the YOU WIN banner stays up, and **Respawn** (that label, not "Play Again") plus **Quit**
+      sit side by side. **Respawn** or **R** restarts the round; **Quit** or **Esc** exits. Click the buttons
+      with the visible cursor.
+- [ ] **Music**: ambient Mars loop starts at the beginning of the show (calm, no drums). On the first real shot
+      (the accuser opening fire, or the player's first rifle shot once the fight has started) it crossfades to the
+      132 BPM battle loop without a click or a gap. On victory the loops fade and a short sting plays. Voice lines
+      duck the music; after a line finishes it swells back. **Respawn** / **R** returns to ambient. Before
+      `mars_setup.py`, tracks should still play from `RawAudio/Music/` via `USoundWaveProcedural`. After setup,
+      `/Game/Audio/Music` assets play and the two loops have `bLooping` set. If `GetAvailableAudioByteCount` or
+      `UAudioComponent::SetUISound` / `bIsUISound` moved in 5.8, adjust `MarsMusicActor.cpp`.
 - [ ] **Attract / debug camera**: **C** cycles first person → director → wide orbit → low action → first person.
       In attract views the full astronaut body is visible and movement/fire are disabled.
 - [ ] **Caption fit**: longer lines still fit at 1080p (the HUD shrinks the subtitle to 90% of the screen width).
