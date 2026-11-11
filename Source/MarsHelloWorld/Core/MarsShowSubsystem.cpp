@@ -144,6 +144,7 @@ void UMarsShowSubsystem::NotifyDeath(ACombatantCharacter* Victim, ACombatantChar
 	Line.ExpireTime = Now() + 8.f;
 	KillFeed.Add(Line);
 
+	UE_LOG(LogMars, Log, TEXT("KO: %s defeated %s"), *Line.Speaker.ToString(), *Victim->GetProfile().DisplayName.ToString());
 	ShowBanner(FText::Format(LOCTEXT("Fallen", "{0} HAS FALLEN"), Victim->GetProfile().DisplayName), Victim->GetProfile().UIColor, 1.8f, 3.f);
 	AddCameraShake(0.8f);
 	if (Director)

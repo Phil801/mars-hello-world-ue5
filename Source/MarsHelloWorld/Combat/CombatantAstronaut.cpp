@@ -246,17 +246,20 @@ void ACombatantAstronaut::OnAttackFired(const FCombatantAttack& Attack)
 
 void ACombatantAstronaut::StartFighting()
 {
-	ACombatantCharacter::StartFighting();
-	bTargetPinned = false;
-	Target = nullptr;
+	// Don't call ACombatantCharacter::StartFighting() here: that virtual-dispatches
+	// to StartFightingAt, and the old override called StartFighting again (stack overflow).
+	StartFightingAt(nullptr, false, false);
 }
 
 void ACombatantAstronaut::StartFightingAt(ACombatantCharacter* InitialTarget, bool bPinTarget, bool bReadyToFire)
 {
+	// The player never auto-targets or auto-fires; input drives the rifle.
 	(void)InitialTarget;
 	(void)bPinTarget;
 	(void)bReadyToFire;
-	StartFighting();
+	ACombatantCharacter::StartFightingAt(nullptr, false, false);
+	bTargetPinned = false;
+	Target = nullptr;
 }
 
 void ACombatantAstronaut::Celebrate()

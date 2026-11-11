@@ -11,6 +11,9 @@ public class MarsHelloWorldTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.Latest;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
 
+		// Needed so a packaged Shipping build can log show events (dialogue, KOs, victory).
+		bUseLoggingInShipping = true;
+
 		ExtraModuleNames.Add("MarsHelloWorld");
 	}
 }
