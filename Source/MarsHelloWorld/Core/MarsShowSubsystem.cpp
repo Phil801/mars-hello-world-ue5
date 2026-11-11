@@ -125,7 +125,7 @@ void UMarsShowSubsystem::ForceStragglers()
 	{
 		if (C->GetCombatState() == ECombatantState::Entering)
 		{
-			UE_LOG(LogMars, Warning, TEXT("%s never arrived; pulling it into the arena"), *C->GetName());
+			MarsShowLog(FString::Printf(TEXT("%s never arrived; pulling it into the arena"), *C->GetName()));
 			C->ForceArrive();
 		}
 	}
@@ -144,7 +144,7 @@ void UMarsShowSubsystem::NotifyDeath(ACombatantCharacter* Victim, ACombatantChar
 	Line.ExpireTime = Now() + 8.f;
 	KillFeed.Add(Line);
 
-	UE_LOG(LogMars, Log, TEXT("KO: %s defeated %s"), *Line.Speaker.ToString(), *Victim->GetProfile().DisplayName.ToString());
+	MarsShowLog(FString::Printf(TEXT("KO: %s defeated %s"), *Line.Speaker.ToString(), *Victim->GetProfile().DisplayName.ToString()));
 	ShowBanner(FText::Format(LOCTEXT("Fallen", "{0} HAS FALLEN"), Victim->GetProfile().DisplayName), Victim->GetProfile().UIColor, 1.8f, 3.f);
 	AddCameraShake(0.8f);
 	if (Director)
@@ -157,6 +157,7 @@ void UMarsShowSubsystem::NotifyDeath(ACombatantCharacter* Victim, ACombatantChar
 
 void UMarsShowSubsystem::NotifyFirstShot()
 {
+	MarsShowLog(TEXT("First shot"));
 	if (Music)
 	{
 		Music->NotifyFirstShot();
@@ -197,6 +198,7 @@ void UMarsShowSubsystem::CheckForWinner()
 	{
 		Winner = Player;
 		ShowBanner(LOCTEXT("YouWin", "YOU WIN"), Player->GetProfile().UIColor, 9999.f, 5.f);
+		MarsShowLog(TEXT("YOU WIN"));
 		Player->Celebrate();
 		if (AMarsPlayerController* PC = Cast<AMarsPlayerController>(UGameplayStatics::GetPlayerController(this, 0)))
 		{
@@ -344,7 +346,7 @@ void UMarsShowSubsystem::SetPhase(EMarsShowPhase NewPhase)
 {
 	Phase = NewPhase;
 	PhaseStartTime = Now();
-	UE_LOG(LogMars, Log, TEXT("Show phase -> %s"), *UEnum::GetValueAsString(NewPhase));
+	MarsShowLog(FString::Printf(TEXT("Show phase -> %s"), *UEnum::GetValueAsString(NewPhase)));
 	OnPhaseChanged.Broadcast(NewPhase);
 }
 

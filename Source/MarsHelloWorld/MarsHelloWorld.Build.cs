@@ -30,12 +30,5 @@ public class MarsHelloWorld : ModuleRules
 			"Slate",
 			"SlateCore"
 		});
-
-		// Game-module only: do not set Target.bUseLoggingInShipping (that requires a Unique
-		// build environment because MarsHelloWorld shares UnrealGame build products).
-		if (Target.Configuration == UnrealTargetConfiguration.Shipping)
-		{
-			PrivateDefinitions.Add("USE_LOGGING_IN_SHIPPING=1");
-		}
 	}
 }

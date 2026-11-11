@@ -428,8 +428,8 @@ float ACombatantCharacter::SpeakLine(FName LineId, ACombatantCharacter* AddressT
 		Voice = MarsVoice::ResolveVoice(this, Profile, Duration);
 	}
 
-	UE_LOG(LogMars, Log, TEXT("Line %s: %s says \"%s\"%s"), *LineId.ToString(), *Profile.DisplayName.ToString(), *Spoken.ToString(),
-		Voice ? TEXT("") : TEXT(" (no audio)"));
+	MarsShowLog(FString::Printf(TEXT("Line %s: %s says \"%s\"%s"), *LineId.ToString(), *Profile.DisplayName.ToString(), *Spoken.ToString(),
+		Voice ? TEXT("") : TEXT(" (no audio)")));
 	if (Voice)
 	{
 		UGameplayStatics::SpawnSound2D(this, Voice);

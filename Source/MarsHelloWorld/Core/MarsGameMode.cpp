@@ -71,7 +71,7 @@ void AMarsGameMode::StartPlay()
 		}
 	}
 	Show->BeginShow(Valid, Seed);
-	UE_LOG(LogMars, Log, TEXT("Mars Hello World: %d combatants, seed %d, gravity %.0f"), Valid, Seed, GetWorld()->GetGravityZ());
+	MarsShowLog(FString::Printf(TEXT("Mars Hello World: %d combatants, seed %d, gravity %.0f"), Valid, Seed, GetWorld()->GetGravityZ()));
 }
 
 void AMarsGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
@@ -199,6 +199,6 @@ void AMarsGameMode::LaunchCombatant(int32 Index)
 	if (C)
 	{
 		C->LaunchEntrance(ArrivalPoint, ArenaCenter, Seed * 31 + Index * 7919);
-		UE_LOG(LogMars, Log, TEXT("%s enters from %s"), *C->GetProfile().DisplayName.ToString(), *Start.ToCompactString());
+		MarsShowLog(FString::Printf(TEXT("%s enters from %s"), *C->GetProfile().DisplayName.ToString(), *Start.ToCompactString()));
 	}
 }

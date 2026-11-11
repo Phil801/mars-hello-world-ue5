@@ -186,7 +186,7 @@ void AMarsMusicActor::StartAmbient()
 	bBattleStarted = false;
 	bVictoryPlayed = false;
 	ApplyVolumes();
-	UE_LOG(LogMars, Log, TEXT("Music: ambient Mars loop"));
+	MarsShowLog(TEXT("Music: ambient Mars loop"));
 }
 
 void AMarsMusicActor::NotifyFirstShot()
@@ -212,7 +212,7 @@ void AMarsMusicActor::NotifyFirstShot()
 	}
 	AmbientTarget = 0.f;
 	BattleTarget = BattleLevel;
-	UE_LOG(LogMars, Log, TEXT("Music: battle loop (first shot)"));
+	MarsShowLog(TEXT("Music: battle loop (first shot)"));
 }
 
 void AMarsMusicActor::PlayVictory()
@@ -235,7 +235,7 @@ void AMarsMusicActor::PlayVictory()
 		StingComp->SetVolumeMultiplier(MasterVolume * StingLevel);
 		StingComp->Play();
 	}
-	UE_LOG(LogMars, Log, TEXT("Music: victory sting"));
+	MarsShowLog(TEXT("Music: victory sting"));
 }
 
 void AMarsMusicActor::NotifyVoice(float DurationSeconds)

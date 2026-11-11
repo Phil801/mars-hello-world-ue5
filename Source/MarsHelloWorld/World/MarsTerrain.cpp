@@ -173,8 +173,8 @@ void AMarsTerrain::BuildTerrain(int32 Seed)
 
 	ScatterRocks(Stream);
 
-	UE_LOG(LogMars, Log, TEXT("Mars terrain built: %d verts, %d tris, %d craters, %d rocks (seed %d)"),
-		Vertices.Num(), Triangles.Num() / 3, Craters.Num(), Boulders->GetInstanceCount() + Slabs->GetInstanceCount(), Seed);
+	MarsShowLog(FString::Printf(TEXT("Mars terrain built: %d verts, %d tris, %d craters, %d rocks (seed %d)"),
+		Vertices.Num(), Triangles.Num() / 3, Craters.Num(), Boulders->GetInstanceCount() + Slabs->GetInstanceCount(), Seed));
 }
 
 void AMarsTerrain::ScatterRocks(FRandomStream& Stream)

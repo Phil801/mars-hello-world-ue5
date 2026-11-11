@@ -75,13 +75,13 @@ void UMarsConversationDirector::AssignRoles()
 
 	AccuseLineId = (Stream.FRand() < 0.5f) ? MarsDialogueIds::Accuse : MarsDialogueIds::AccuseVariant;
 
-	UE_LOG(LogMars, Log, TEXT("Kevin hunt (seed %d): Martian is %s, X-Bot is %s, Venusian is %s; %s will accuse %s first"),
+	MarsShowLog(FString::Printf(TEXT("Kevin hunt (seed %d): Martian is %s, X-Bot is %s, Venusian is %s; %s will accuse %s first"),
 		Seed,
 		MarsDialogue::ClaimedNameLabel(ClaimedNames[0]),
 		MarsDialogue::ClaimedNameLabel(ClaimedNames[1]),
 		MarsDialogue::ClaimedNameLabel(ClaimedNames[2]),
 		MarsDialogue::SpeakerLabel(AccuserId),
-		MarsDialogue::SpeakerLabel(AccusedId));
+		MarsDialogue::SpeakerLabel(AccusedId)));
 }
 
 EMarsClaimedName UMarsConversationDirector::GetClaimedName(EMarsSpeakerId Speaker) const
