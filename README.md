@@ -221,3 +221,43 @@ through `USoundWaveProcedural`.
   with a voice whose whole lineage is permissive.
 - Design patterns are inspired by Tom Looman's ActionRoguelike (MIT). No code was copied.
 - No Mixamo, Adobe, Quixel or Marketplace assets are used.
+
+## Prompts used
+
+This is everything we used to prompt the AI (Grok Bot, "dog-vr-grokbot") to build this game. These are Phil's messages from about 10:30 PM MT on Nov 10, 2026 onward, in order, as spoken or typed. The only edits are that a couple of rough words were swapped for clean ones, since this is public. Speech-to-text slips are left as they were.
+
+| # | Time (MT) | Prompt |
+|---|---|---|
+| 1 | Nov 10, 10:30 PM | What do you know about unreal engine? Can you build in it as an expert? |
+| 2 | 10:32 PM | This one is definitely not in the brain. I in the web and research unreal engine game development |
+| 3 | 10:36 PM | I want you to do a deep search on GitHub and research the top 20 UE5 Open source games by starts and downloads. Pull them all and put them in the code graph. Then study them and build an understanding of how to build games with them |
+| 4 | 10:38 PM | Then I want you to create a hello world style ue5 program for me. It will be a world modeled on mars and a Martian, an x bot and a Venetian will come flying and running in and each will say "hello world" in their own voice and then fight each other to the death. Open a new repo on phil801 and put it there. |
+| 5 | 10:39 PM | You can stand the engine up in a docker container on the ai-server if you need to |
+| 6 | 10:40 PM | I don't at all. I'm depending on you to figure this all out and stand up what needs standing up |
+| 7 | 10:50 PM | Everything you learn about game dev, unreal engine dev, etc goes into the brain. |
+| 8 | 10:51 PM | This is literally a test to show how an ai can take a topic it knows nothing about and go become an expert and build a top notch product all by itself. |
+| 9 | Nov 11, 6:57 AM | ok, i'm awake, back and have gotten the servers back online. What do you need to finish? |
+| 10 | 7:14 AM | I'm working on that. Sign in. And hush. But while I'm doing that, I want you to go change the script a little bit instead of them just saying, "Hello world." I want them to come in and. Say, "Hello world, I'm looking for Kevin." Have you seen Kevin? And some variants, and they're gonna, as the others show up, they're gonna say, are you Kevin? One of them's gonna say, I'm Phil. Another one's gonna say, I'm Tyler. And they're all gonna be looking for Kevin. And at some point, one's gonna decide that one of them is Kevin, and they're gonna start shooting. And then the others are, are fighting him. The others are going to decide all the others are Kevin. Basically, they're trying to kill Kevin. And whenever one of the box guys gets knocked out or whatever. They're going to yell, I killed Kevin. |
+| 11 | 7:15 AM | Okay, it looks like step five is working. |
+| 12 | 7:16 AM | I may not have copied that right. I need you to use copy buttons like you're supposed to, please. |
+| 13 | 7:18 AM | Put your token in, into, in physical, just like you would your regular GitHub to-token. You're not doing anything special here. And just put it in and call it. Dog's unreal token or something, like. Slap it in there and then you can use it. |
+| 14 | 7:19 AM | put it in Infisical |
+| 15 | 7:20 AM | we're on the server now |
+| 16 | 7:21 AM | You can create the repo, you're probably just gonna have to get permission. I think. And you don't need my yes on merging. I already told you to build this and get it merged. |
+| 17 | 7:23 AM | So, I'm doing all this as a demo to some friends, so are we gonna be able to compile this and load it onto Epic or something somewhere, so that they can just log in and play it, and run it, or what's the deal with that? How do other people use this game? I know nothing about this. |
+| 18 | 7:23 AM | done |
+| 19 | 7:25 AM | And also, you know what I didn't do, is how hard is it to change this to where you're actually doing a first-person view with a some kind of gun and maybe you're an astronaut from Earth. And. That your perspective is that it's first person astronaut from Earth, and. Everyone's looking for Kevin. And when they all start fighting you, The Basically the first person shooter guy, the main character. Has shields. And basically can never die. And he's fighting the other bots. And Martians. And Venusians. And they're able to kill each other, but they can't kill him. And the once the other bots are dead. And aliens are dead. The victory dance is, I hate it when people call me Kevin. |
+| 20 | 7:26 AM | Instead of when people call me Kevin, when things call me Kevin. |
+| 21 | 7:26 AM | I guess you'll need another voice pack too. And he should sound human, obviously. |
+| 22 | 7:27 AM | Oh, shoot, and change that final script. It should say, I hate it when things call me Kevin. I go by Kev. |
+| 23 | 7:27 AM | And then give him a respond button so he can just loop and play it again. That'll be fun. |
+| 24 | 7:27 AM | Respawn, not respond |
+| 25 | 7:31 AM | When you're done with that. And you upload. the code again. On the README, I would like for you to make one change, and that is to, I, I mean, obviously you'll may need to make other changes to update it. I want you to add a section that says prompts used. And if you need me to, I'll go back and copy and paste in. for you all the prompts if you can't get them all. But I would like you to get all the prompts I used. to tell you which. Would start at ten thirty P M. And so from there, I would like you to put in all the prompts. That anywhere that I use an inappropriate word, change it to an appropriate one. Since this will be public. And just say, This is everything that we use to prompt me to build this game. |
+| 26 | 7:32 AM | Also, we need to put the, once you get the final version compiled. we need to put that on there. Put the compiled version on. GitHub so they can just download that and play it. We can do that, right? |
+| 27 | 7:33 AM | Yeah, I knew we needed to make it public, and that's perfect. This is kinda, I mean. Yeah, that's great. |
+| 28 | 7:35 AM | Also, I know you're trying to get it done, but since it appears that you're still in the rebuild, do we have background music, or is it just silent and boring? We should have some kinda cool, kinda upbeat background music running. With a nice beat that ma-matches, you know, the little battle that's going on. |
+| 29 | 7:36 AM | Oh, I left off, the other one doesn't have a name. The other one's name is Daniel. So you got. Tyler, Dannian, and Phil. |
+| 30 | 7:36 AM | DANYON |
+| 31 | 7:37 AM | not daniel or dannian. sorry, that's my speech to text |
+
+Along the way Phil also answered a few multiple-choice questions from the AI (for example "Yes, add them through a separate UE5 crawl config" and "Link Epic to my Phil801 GitHub account. Walk me through it.") and pasted a screenshot of a GitHub 404 page.
