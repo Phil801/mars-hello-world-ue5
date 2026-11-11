@@ -378,11 +378,8 @@ void ACombatantAstronaut::MoveRight(float Value)
 
 void ACombatantAstronaut::AddLook(FVector2D Axis)
 {
-	if (AController* C = GetController())
-	{
-		C->AddYawInput(Axis.X);
-		C->AddPitchInput(Axis.Y);
-	}
+	AddControllerYawInput(Axis.X);
+	AddControllerPitchInput(Axis.Y);
 }
 
 void ACombatantAstronaut::StartSprint()

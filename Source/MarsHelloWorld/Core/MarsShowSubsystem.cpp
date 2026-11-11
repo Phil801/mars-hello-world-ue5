@@ -348,3 +348,8 @@ void UMarsShowSubsystem::SetPhase(EMarsShowPhase NewPhase)
 }
 
 #undef LOCTEXT_NAMESPACE
+
+void UMarsShowSubsystem::SetTerrain(AMarsTerrain* InTerrain)
+{
+	Terrain = InTerrain;
+}

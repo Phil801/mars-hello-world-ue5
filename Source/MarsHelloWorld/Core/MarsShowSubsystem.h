@@ -82,7 +82,7 @@ public:
 	virtual void Deinitialize() override;
 
 	void BeginShow(int32 InExpectedCombatants, int32 InSeed);
-	void SetTerrain(AMarsTerrain* InTerrain) { Terrain = InTerrain; }
+	void SetTerrain(AMarsTerrain* InTerrain);
 
 	// --- Combatant / director callbacks ----------------------------------------------------------
 	void RegisterCombatant(ACombatantCharacter* Combatant);

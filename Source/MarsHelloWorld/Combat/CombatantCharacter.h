@@ -142,9 +142,10 @@ protected:
 
 	FRandomStream Stream;
 
+	UMarsShowSubsystem* GetShow() const;
+
 private:
 	void SetCombatState(ECombatantState NewState);
-	UMarsShowSubsystem* GetShow() const;
 
 	void TickEntering(float DeltaSeconds);
 	void TickFighting(float DeltaSeconds);

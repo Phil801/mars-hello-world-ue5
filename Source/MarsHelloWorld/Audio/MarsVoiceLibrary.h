@@ -10,7 +10,7 @@ struct FMarsDialogueLine;
 
 /**
  * Resolves a voice line:
- *  1. the imported SoundWave asset (Content/Python/mars_setup.py imports RawAudio/*.wav into /Game/Audio), else
+ *  1. the imported SoundWave asset (Content/Python/mars_setup.py imports RawAudio/<name>.wav into /Game/Audio), else
  *  2. the raw WAV under <Project>/RawAudio streamed through a USoundWaveProcedural (works in a fresh
  *     clone before any import, in editor and Development builds), else
  *  3. nullptr (the subtitle still shows, so the show never blocks on audio).
