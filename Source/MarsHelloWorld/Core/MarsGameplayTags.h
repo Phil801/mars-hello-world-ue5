@@ -1,0 +1,32 @@
+// Copyright (c) 2026 Phil Burns. MIT License (see LICENSE).
+
+#pragma once
+
+#include "NativeGameplayTags.h"
+
+/**
+ * Native gameplay tags (no DefaultGameplayTags.ini edits needed).
+ * Tags replace enums/bools for states and damage types, as in ActionRoguelike / Lyra.
+ */
+namespace MarsTags
+{
+	// Combatant life-cycle states (mirrors ECombatantState for tag queries / future StateTree use)
+	MARSHELLOWORLD_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Entering);
+	MARSHELLOWORLD_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Greeting);
+	MARSHELLOWORLD_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Ready);
+	MARSHELLOWORLD_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Fighting);
+	MARSHELLOWORLD_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead);
+	MARSHELLOWORLD_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Victorious);
+
+	// Damage types
+	MARSHELLOWORLD_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Melee);
+	MARSHELLOWORLD_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Acid);
+	MARSHELLOWORLD_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Laser);
+	MARSHELLOWORLD_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Plasma);
+	MARSHELLOWORLD_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Sonic);
+
+	// Species
+	MARSHELLOWORLD_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Species_Martian);
+	MARSHELLOWORLD_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Species_XBot);
+	MARSHELLOWORLD_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Species_Venusian);
+}

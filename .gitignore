@@ -1,0 +1,26 @@
+# Unreal generated
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/
+.vs/
+.vscode/
+.idea/
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+Plugins/*/Binaries/
+Plugins/*/Intermediate/
+# Python / tools scratch
+__pycache__/
+*.pyc
+.venv/
+Tools/voice/*.onnx
+Tools/voice/*.onnx.json
+# OS
+.DS_Store
+Thumbs.db

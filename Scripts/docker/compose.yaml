@@ -1,0 +1,26 @@
+# STUB - not deployed. Builds the Linux package inside Epic's container image.
+# Requires: `docker login ghcr.io` with an Epic-linked GitHub account; an NVIDIA GPU + nvidia-container-toolkit to run.
+services:
+  mars-build:
+    profiles: ["manual"]
+    build:
+      context: ../..
+      dockerfile: Scripts/docker/Dockerfile
+      target: builder
+      args:
+        UE_TAG: dev-5.8
+    image: mars-hello-world-ue5:build
+  mars-game:
+    profiles: ["manual"]
+    build:
+      context: ../..
+      dockerfile: Scripts/docker/Dockerfile
+      target: game
+    image: mars-hello-world-ue5:game
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
