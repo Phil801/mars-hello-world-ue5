@@ -5,11 +5,14 @@
 #include "Core/MarsPlayerController.h"
 #include "Camera/MarsShowCamera.h"
 #include "Combat/CombatantCharacter.h"
+#include "Combat/CombatantAstronaut.h"
 #include "Combat/MarsHealthComponent.h"
+#include "InputCoreTypes.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/Font.h"
 #include "Engine/World.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
 
 float AMarsHUD::UIScale() const
@@ -48,11 +51,13 @@ void AMarsHUD::DrawHUD()
 	const float Now = World->GetTimeSeconds();
 
 	DrawHealthBars(Show);
+	DrawPlayerHud(Show);
 	DrawFloatingTexts(Show, Now);
 	DrawCaption(Show, Now);
 	DrawBanner(Show, Now);
 	DrawStatus(Show);
 	DrawKillFeed(Show);
+	DrawRespawnButton(Show);
 	DrawHelp();
 }
 
@@ -121,6 +126,10 @@ void AMarsHUD::DrawHealthBars(UMarsShowSubsystem* Show)
 	UFont* Font = GEngine->GetSmallFont();
 	for (ACombatantCharacter* C : Show->GetCombatants(false))
 	{
+		if (C->IsPlayerAstronaut())
+		{
+			continue; // first-person / Respawn HUD instead
+		}
 		const UMarsHealthComponent* HC = C->GetHealth();
 		if (!HC)
 		{
@@ -221,6 +230,89 @@ void AMarsHUD::DrawKillFeed(UMarsShowSubsystem* Show)
 	}
 }
 
+void AMarsHUD::DrawPlayerHud(UMarsShowSubsystem* Show)
+{
+	const AMarsPlayerController* PC = Cast<AMarsPlayerController>(PlayerOwner);
+	ACombatantAstronaut* Astro = PC ? Cast<ACombatantAstronaut>(PC->GetPawn()) : nullptr;
+	if (!Astro || !Astro->GetHealth())
+	{
+		return;
+	}
+	const float S = UIScale();
+
+	if (PC && !PC->IsAttractMode())
+	{
+		// Crosshair.
+		const float Cx = Canvas->ClipX * 0.5f;
+		const float Cy = Canvas->ClipY * 0.5f;
+		const float Arm = 8.f * S;
+		const float Gap = 4.f * S;
+		const FLinearColor Cross(1.f, 1.f, 1.f, 0.85f);
+		DrawRect(Cross, Cx - Arm - Gap, Cy - 1.f * S, Arm, 2.f * S);
+		DrawRect(Cross, Cx + Gap, Cy - 1.f * S, Arm, 2.f * S);
+		DrawRect(Cross, Cx - 1.f * S, Cy - Arm - Gap, 2.f * S, Arm);
+		DrawRect(Cross, Cx - 1.f * S, Cy + Gap, 2.f * S, Arm);
+
+		// Shield impact flash.
+		if (Astro->GetShieldFlashAlpha() > 0.02f)
+		{
+			FLinearColor Flash(0.35f, 0.85f, 1.f, Astro->GetShieldFlashAlpha() * 0.28f);
+			DrawRect(Flash, 0.f, 0.f, Canvas->ClipX, Canvas->ClipY);
+		}
+	}
+
+	// Suit integrity + shield, bottom left.
+	const float X = 24.f * S;
+	const float Y = Canvas->ClipY - 110.f * S;
+	const float W = 260.f * S;
+	const float H = 14.f * S;
+	DrawShadowedText(TEXT("SUIT"), FLinearColor(0.9f, 0.9f, 0.9f), X, Y - 20.f * S, GEngine->GetSmallFont(), 1.0f * S);
+	DrawRect(FLinearColor(0.f, 0.f, 0.f, 0.55f), X - 2.f, Y - 2.f, W + 4.f, H + 4.f);
+	DrawRect(FLinearColor(0.85f, 0.2f, 0.15f), X, Y, W * Astro->GetHealth()->GetHealthFraction(), H);
+
+	const float Ys = Y + 28.f * S;
+	DrawShadowedText(TEXT("SHIELD"), FLinearColor(0.5f, 0.9f, 1.f), X, Ys - 20.f * S, GEngine->GetSmallFont(), 1.0f * S);
+	DrawRect(FLinearColor(0.f, 0.f, 0.f, 0.55f), X - 2.f, Ys - 2.f, W + 4.f, H + 4.f);
+	DrawRect(FLinearColor(0.3f, 0.8f, 1.f), X, Ys, W * Astro->GetShieldFraction(), H);
+}
+
+void AMarsHUD::DrawRespawnButton(UMarsShowSubsystem* Show)
+{
+	if (!Show || Show->GetPhase() != EMarsShowPhase::Victory || !PlayerOwner)
+	{
+		bRespawnMouseWasDown = false;
+		return;
+	}
+	const float S = UIScale();
+	const FString Label = TEXT("Respawn");
+	UFont* Font = GEngine->GetMediumFont();
+	const float Scale = 1.8f * S;
+	float TW = 0.f, TH = 0.f;
+	GetTextSize(Label, TW, TH, Font, Scale);
+	const float PadX = 36.f * S;
+	const float PadY = 16.f * S;
+	const float W = TW + PadX * 2.f;
+	const float H = TH + PadY * 2.f;
+	const float X = Canvas->ClipX * 0.5f - W * 0.5f;
+	const float Y = Canvas->ClipY * 0.62f;
+
+	float MX = 0.f, MY = 0.f;
+	const bool bHaveMouse = PlayerOwner->GetMousePosition(MX, MY);
+	const bool bHover = bHaveMouse && MX >= X && MX <= X + W && MY >= Y && MY <= Y + H;
+	const FLinearColor Fill = bHover ? FLinearColor(0.95f, 0.55f, 0.15f, 0.95f) : FLinearColor(0.8f, 0.4f, 0.08f, 0.9f);
+	DrawRect(FLinearColor(0.f, 0.f, 0.f, 0.7f), X - 3.f, Y - 3.f, W + 6.f, H + 6.f);
+	DrawRect(Fill, X, Y, W, H);
+	DrawShadowedText(Label, FLinearColor::White, X + PadX, Y + PadY, Font, Scale);
+
+	const bool bDown = PlayerOwner->IsInputKeyDown(EKeys::LeftMouseButton);
+	if (bHover && bDown && !bRespawnMouseWasDown)
+	{
+		UGameplayStatics::SetGlobalTimeDilation(this, 1.f);
+		PlayerOwner->ConsoleCommand(TEXT("RestartLevel"));
+	}
+	bRespawnMouseWasDown = bDown;
+}
+
 void AMarsHUD::DrawHelp()
 {
 	const AMarsPlayerController* PC = Cast<AMarsPlayerController>(PlayerOwner);
@@ -229,11 +321,19 @@ void AMarsHUD::DrawHelp()
 		return;
 	}
 	const float S = UIScale();
-	FString CamName = TEXT("director");
-	if (const AMarsShowCamera* Cam = PC ? Cast<AMarsShowCamera>(PC->GetViewTarget()) : nullptr)
+	FString CamName = TEXT("first person");
+	if (PC)
 	{
-		CamName = Cam->GetMode() == EMarsCameraMode::WideOrbit ? TEXT("wide orbit") : (Cam->GetMode() == EMarsCameraMode::LowAction ? TEXT("low action") : TEXT("director"));
+		switch (PC->GetViewMode())
+		{
+		case EMarsViewMode::Director:   CamName = TEXT("director"); break;
+		case EMarsViewMode::WideOrbit:  CamName = TEXT("wide orbit"); break;
+		case EMarsViewMode::LowAction:  CamName = TEXT("low action"); break;
+		default:                        CamName = TEXT("first person"); break;
+		}
 	}
-	const FString Help = FString::Printf(TEXT("R restart   Space slow-mo   C camera (%s)   H hide help   Esc quit"), *CamName);
-	DrawShadowedText(Help, FLinearColor(1.f, 1.f, 1.f, 0.75f), 24.f * S, Canvas->ClipY - 36.f * S, GEngine->GetSmallFont(), 1.1f * S);
+	const FString Help = FString::Printf(
+		TEXT("WASD move   Mouse look   LMB fire   Space jump   Shift sprint   C camera (%s)   P slow-mo   R restart   H hide help   Esc quit"),
+		*CamName);
+	DrawShadowedText(Help, FLinearColor(1.f, 1.f, 1.f, 0.75f), 24.f * S, Canvas->ClipY - 36.f * S, GEngine->GetSmallFont(), 1.05f * S);
 }

@@ -21,11 +21,22 @@ float UMarsHealthComponent::ApplyDelta(float Delta)
 		return 0.f;
 	}
 	const float Old = Health;
-	Health = FMath::Clamp(Health + Delta, 0.f, MaxHealth);
+	const float Floor = bImmortal ? MinHealth : 0.f;
+	Health = FMath::Clamp(Health + Delta, Floor, MaxHealth);
 	const float Actual = Health - Old;
 	if (!FMath::IsNearlyZero(Actual))
 	{
 		OnHealthChanged.Broadcast(this, Health, Actual);
 	}
 	return Actual;
+}
+
+void UMarsHealthComponent::SetImmortal(bool bInImmortal, float InMinHealth)
+{
+	bImmortal = bInImmortal;
+	MinHealth = FMath::Max(0.f, InMinHealth);
+	if (bImmortal && Health < MinHealth)
+	{
+		Health = MinHealth;
+	}
 }

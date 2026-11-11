@@ -30,6 +30,7 @@ public:
 
 	void SetArenaCenter(const FVector& InCenter) { ArenaCenter = InCenter; }
 	void CycleMode();
+	void SetMode(EMarsCameraMode InMode) { Mode = InMode; }
 	EMarsCameraMode GetMode() const { return Mode; }
 
 protected:

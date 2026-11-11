@@ -551,6 +551,12 @@ void ACombatantCharacter::ChooseTarget()
 
 void ACombatantCharacter::TickFighting(float DeltaSeconds)
 {
+	// The playable astronaut aims and fires from player input; skip the AI brain.
+	if (IsPlayerAstronaut())
+	{
+		return;
+	}
+
 	for (float& Cd : AttackCooldowns)
 	{
 		Cd -= DeltaSeconds;

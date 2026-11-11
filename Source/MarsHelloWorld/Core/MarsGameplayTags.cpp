@@ -16,8 +16,10 @@ namespace MarsTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Laser,  "Mars.Damage.Laser",  "X-Bot eye laser");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Plasma, "Mars.Damage.Plasma", "Venusian plasma orb");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Sonic,  "Mars.Damage.Sonic",  "Venusian sonic pulse");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Rifle,  "Mars.Damage.Rifle",  "Astronaut rifle");
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Species_Martian,  "Mars.Species.Martian",  "Native of Mars");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Species_XBot,     "Mars.Species.XBot",     "Robot");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Species_Venusian, "Mars.Species.Venusian", "Visitor from Venus");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Species_Astronaut,"Mars.Species.Astronaut","Earth astronaut (player)");
 }

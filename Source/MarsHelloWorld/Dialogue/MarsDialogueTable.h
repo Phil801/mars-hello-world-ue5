@@ -12,7 +12,8 @@ enum class EMarsSpeakerId : uint8
 {
 	Martian,
 	XBot,
-	Venusian
+	Venusian,
+	Astronaut
 };
 
 /** The name a combatant gives when asked "Are you Kevin?" Assigned at random (by show seed). */
@@ -65,6 +66,9 @@ namespace MarsDialogueIds
 	extern const FName AllAreKevin;
 	extern const FName KillKevin;
 	extern const FName KillKevinVariant;
+	extern const FName DenyKevin;
+	extern const FName DenyKevinVariant;
+	extern const FName VictoryHateKevin;
 }
 
 namespace MarsDialogue

@@ -101,6 +101,8 @@ public:
 
 	// --- Queries ----------------------------------------------------------------------------------
 	TArray<ACombatantCharacter*> GetCombatants(bool bAliveOnly) const;
+	TArray<ACombatantCharacter*> GetNpcCombatants(bool bAliveOnly) const;
+	ACombatantCharacter* GetPlayerAstronaut() const;
 	ACombatantCharacter* GetCurrentSpeaker() const { return CurrentSpeaker.Get(); }
 	ACombatantCharacter* GetWinner() const { return Winner.Get(); }
 	EMarsShowPhase GetPhase() const { return Phase; }

@@ -77,6 +77,11 @@ CHARACTERS = {
         "KillKevin": "I killed Kevin!",
         "KillKevinVariant": "I killed Kevin! Finally!",
     }),
+    "Astronaut": (199, 1.00, {
+        "DenyKevin": "No!",
+        "DenyKevinVariant": "No! I'm not Kevin.",
+        "VictoryHateKevin": "I hate it when people call me Kevin.",
+    }),
 }
 
 # ffmpeg filter chains applied after the numpy stage
@@ -90,6 +95,8 @@ FFMPEG = {
     "Venusian": "asetrate=44100*1.33,aresample=44100,atempo=0.85,"
                 "chorus=0.6:0.9:50|60|70:0.4|0.32|0.3:0.25|0.4|0.3:2|2.3|1.3,"
                 "aecho=0.8:0.6:240|480|720:0.35|0.25|0.15,highpass=f=220,loudnorm=I=-16:TP=-1.5",
+    # Earth radio: band-limited comms, short cabin echo, no pitch change
+    "Astronaut": "highpass=f=400,lowpass=f=2800,treble=g=3,aecho=0.7:0.5:25:0.2,loudnorm=I=-16:TP=-1.5",
 }
 
 

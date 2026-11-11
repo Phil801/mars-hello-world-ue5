@@ -2,6 +2,7 @@
 
 #include "Core/MarsShowSubsystem.h"
 #include "Core/MarsShowSettings.h"
+#include "Core/MarsPlayerController.h"
 #include "Dialogue/MarsConversationDirector.h"
 #include "Combat/CombatantCharacter.h"
 #include "Combat/MarsHealthComponent.h"
@@ -49,6 +50,10 @@ void UMarsShowSubsystem::BeginShow(int32 InExpectedCombatants, int32 InSeed)
 
 	Director = NewObject<UMarsConversationDirector>(this);
 	Director->BeginShow(ExpectedCombatants, Seed);
+	if (ACombatantCharacter* Player = GetPlayerAstronaut())
+	{
+		Director->SetPlayer(Player);
+	}
 
 	// If anyone is still not in place after 25 s (stuck on a rock, fell through the world...), pull them in.
 	GetWorld()->GetTimerManager().SetTimer(StragglerTimer, this, &UMarsShowSubsystem::ForceStragglers, 25.f, false);
@@ -138,14 +143,24 @@ void UMarsShowSubsystem::CheckForWinner()
 	{
 		return;
 	}
-	const TArray<ACombatantCharacter*> Alive = GetCombatants(true);
-	if (Alive.Num() > 1)
+	const TArray<ACombatantCharacter*> LivingNpcs = GetNpcCombatants(true);
+	if (LivingNpcs.Num() > 0)
 	{
 		return;
 	}
 
 	SetPhase(EMarsShowPhase::Victory);
-	if (Alive.Num() == 1)
+	if (ACombatantCharacter* Player = GetPlayerAstronaut())
+	{
+		Winner = Player;
+		ShowBanner(LOCTEXT("YouWin", "YOU WIN"), Player->GetProfile().UIColor, 9999.f, 5.f);
+		Player->Celebrate();
+		if (AMarsPlayerController* PC = Cast<AMarsPlayerController>(UGameplayStatics::GetPlayerController(this, 0)))
+		{
+			PC->EnterVictoryUi();
+		}
+	}
+	else if (const TArray<ACombatantCharacter*> Alive = GetCombatants(true); Alive.Num() == 1)
 	{
 		Winner = Alive[0];
 		ShowBanner(FText::Format(LOCTEXT("Wins", "{0} WINS!"), Alive[0]->GetProfile().DisplayName), Alive[0]->GetProfile().UIColor, 9999.f, 6.f);
@@ -222,6 +237,31 @@ TArray<ACombatantCharacter*> UMarsShowSubsystem::GetCombatants(bool bAliveOnly) 
 		}
 	}
 	return Out;
+}
+
+TArray<ACombatantCharacter*> UMarsShowSubsystem::GetNpcCombatants(bool bAliveOnly) const
+{
+	TArray<ACombatantCharacter*> Out;
+	for (ACombatantCharacter* C : GetCombatants(bAliveOnly))
+	{
+		if (!C->IsPlayerAstronaut())
+		{
+			Out.Add(C);
+		}
+	}
+	return Out;
+}
+
+ACombatantCharacter* UMarsShowSubsystem::GetPlayerAstronaut() const
+{
+	for (ACombatantCharacter* C : Combatants)
+	{
+		if (IsValid(C) && C->IsPlayerAstronaut())
+		{
+			return C;
+		}
+	}
+	return nullptr;
 }
 
 float UMarsShowSubsystem::GetFightElapsed() const

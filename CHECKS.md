@@ -29,19 +29,33 @@ This project was written without an Unreal Engine install. Work through this lis
       `DirectoriesToAlwaysCook`, so make sure the build scripts' `mars_setup.py` step imported every new line
       (it scans `RawAudio/*.wav` and skips `RawAudio/Archive/`).
 - [ ] **Cooking engine content**: `/Engine/BasicShapes` is cooked (DirectoriesToAlwaysCook) so bodies appear in packaged builds.
+- [ ] **Player spawn**: you start in first person as the Earth astronaut in the arena (white/orange suit arms and a rifle
+      visible). WASD, mouse look, Space jump, Left Shift sprint, LMB fire all work. Gravity hops feel right.
+- [ ] **Enhanced Input**: runtime `MapKey` with negate/swizzle modifiers for WASD and gamepad (MarsPlayerController.cpp).
+      If a modifier property or `EKeys::Mouse2D` name moved in 5.8, rebind there.
 - [ ] **Entrances**: the Martian runs in, X-Bot flies in and lands, the Venusian hovers in and stays flying (knockback uses
-      `KickVelocity` so it never drops into Falling). The 25 s straggler timer teleports anyone stuck.
-- [ ] **Conversation**: each arriver says an arrival line (Hello world / Have you seen Kevin? / a variant) with a
-      subtitle. As the second and third show up, someone already present asks "Are you Kevin?" and the newcomer
-      answers with their seeded identity (I'm Phil / I'm Tyler / an evasive denial). The first arriver is asked
-      after everyone has landed so all three identities are heard. Then one or two "still looking" lines.
-      Lines play one at a time; the camera frames the current speaker.
+      `KickVelocity` so it never drops into Falling). The 25 s straggler timer teleports anyone stuck. The astronaut is
+      already in the arena and is not launched as a fourth arriver.
+- [ ] **Conversation**: each NPC arriver says an arrival line with a subtitle. The first NPC to land asks the
+      astronaut "Are you Kevin?" and the astronaut answers **"No!"** (radio voice). As the second and third
+      NPCs show up, someone already present asks them "Are you Kevin?" and they answer with their seeded identity
+      (I'm Phil / I'm Tyler / an evasive denial). The first NPC arriver is asked after everyone has landed so all
+      three identities are heard. Then one or two "still looking" lines. Lines play one at a time.
 - [ ] **Accusation is seeded and not a 3-2-1 countdown**: after the search, one combatant accuses another
       ("you're Kevin!") and opens fire on them. The others then fight the accuser. Then the others say
       "you're all Kevin!" (or their variant) and it becomes a free-for-all. Changing `RandomSeed` changes
       who is Phil/Tyler/not-Kevin and who accuses whom. Same seed should repeat the same assignment.
-- [ ] **Kill lines**: on each KO the killer yells "I killed Kevin!" (or a variant) with a subtitle, including
-      the last kill before the victory banner. The victory celebration no longer replays a hello line.
+- [ ] **Fight targeting**: once the fight starts, NPCs attack the astronaut and each other. They can kill each
+      other. The player can kill them with the rifle (only during the fight).
+- [ ] **Shield and immortality**: hits flash a shield overlay and drain the shield first; the shield regenerates
+      after a short delay. Health never reaches zero (clamp). The astronaut never plays a death / ragdoll.
+- [ ] **Kill lines**: when an NPC gets a KO they yell "I killed Kevin!" (or a variant) with a subtitle. Player
+      kills are silent besides the kill feed.
+- [ ] **Victory**: when all three NPCs are down, the astronaut says **"I hate it when people call me Kevin."**
+      with a subtitle, the YOU WIN banner stays up, and a **Respawn** button (that label, not "Play Again")
+      restarts the round. **R** also restarts. Click the button with the visible cursor.
+- [ ] **Attract / debug camera**: **C** cycles first person → director → wide orbit → low action → first person.
+      In attract views the full astronaut body is visible and movement/fire are disabled.
 - [ ] **Caption fit**: longer lines still fit at 1080p (the HUD shrinks the subtitle to 90% of the screen width).
 - [ ] **Projectile collision**: projectiles hit pawns (overlap) and terrain/rocks (block) and don't hit their owner.
 - [ ] **Melee range and knockback** feel right under Mars gravity (fighters may float off; the arena leash at 1500 uu pulls them back).

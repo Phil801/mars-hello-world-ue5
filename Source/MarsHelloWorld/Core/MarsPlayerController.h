@@ -9,11 +9,23 @@
 class UInputAction;
 class UInputMappingContext;
 class AMarsShowCamera;
+class ACombatantAstronaut;
+
+UENUM()
+enum class EMarsViewMode : uint8
+{
+	FirstPerson, // default playable view
+	Director,    // attract / debug: auto show camera
+	WideOrbit,
+	LowAction
+};
 
 /**
- * Spectator controller. Enhanced Input actions are created in C++ at runtime so the project needs
- * no .uasset input files: R restart, Space slow-motion, C camera mode, H help, Esc quit.
- * (Swap-in hook: assign real UInputAction / UInputMappingContext assets in a Blueprint subclass.)
+ * Player controller for the Earth astronaut, plus an optional attract / debug show camera.
+ * Enhanced Input actions are created in C++ at runtime so the project needs no .uasset input files.
+ *
+ * Play: WASD move, mouse look, LMB fire, Space jump, Left Shift sprint.
+ * Meta: C cycle camera (first person / director / wide / low), P slow-mo, R restart / Respawn, H help, Esc quit.
  */
 UCLASS()
 class MARSHELLOWORLD_API AMarsPlayerController : public APlayerController
@@ -23,9 +35,19 @@ class MARSHELLOWORLD_API AMarsPlayerController : public APlayerController
 public:
 	AMarsPlayerController();
 
+	void SetShowCamera(AMarsShowCamera* Camera);
+	void UseFirstPersonView();
 	void AttachToShowCamera(AMarsShowCamera* Camera);
 
 	bool IsHelpVisible() const { return bShowHelp; }
+	bool IsAttractMode() const { return ViewMode != EMarsViewMode::FirstPerson; }
+	EMarsViewMode GetViewMode() const { return ViewMode; }
+	bool IsVictoryUi() const { return bVictoryUi; }
+	void EnterVictoryUi();
+
+	/** Mouse look scale. Applied in OnLook. */
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	float LookSensitivity = 1.0f;
 
 protected:
 	virtual void BeginPlay() override;
@@ -49,17 +71,50 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> QuitAction;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> MoveForwardAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> MoveRightAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> LookAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> JumpAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> SprintAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> FireAction;
+
 private:
 	void EnsureInputObjects();
+	ACombatantAstronaut* GetAstronaut() const;
+	bool IsGameplayInputAllowed() const;
+
 	void OnRestart();
 	void OnSlowMo();
 	void OnCycleCamera();
 	void OnToggleHelp();
 	void OnQuit();
+	void OnMoveForward(const struct FInputActionValue& Value);
+	void OnMoveRight(const struct FInputActionValue& Value);
+	void OnLook(const struct FInputActionValue& Value);
+	void OnJump();
+	void OnSprintStarted();
+	void OnSprintCompleted();
+	void OnFireStarted();
+	void OnFireCompleted();
+
+	void ApplyViewMode();
 
 	UPROPERTY(Transient)
 	TObjectPtr<AMarsShowCamera> ShowCamera;
 
+	EMarsViewMode ViewMode = EMarsViewMode::FirstPerson;
 	bool bSlowMo = false;
 	bool bShowHelp = true;
+	bool bVictoryUi = false;
 };

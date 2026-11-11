@@ -30,6 +30,11 @@ void UMarsConversationDirector::BeginShow(int32 InExpectedCombatants, int32 InSe
 	bClosingQueued = false;
 }
 
+void UMarsConversationDirector::SetPlayer(ACombatantCharacter* InPlayer)
+{
+	Player = InPlayer;
+}
+
 void UMarsConversationDirector::Stop()
 {
 	bStopped = true;
@@ -183,8 +188,12 @@ void UMarsConversationDirector::EnqueueSpeak(ACombatantCharacter* Speaker, FName
 
 void UMarsConversationDirector::NotifyArrived(ACombatantCharacter* Combatant)
 {
-	if (bStopped || !Combatant || Arrived.Contains(Combatant))
+	if (bStopped || !Combatant || Arrived.Contains(Combatant) || Combatant->IsPlayerAstronaut())
 	{
+		if (Combatant && Combatant->IsPlayerAstronaut())
+		{
+			Player = Combatant;
+		}
 		return;
 	}
 
@@ -224,6 +233,18 @@ void UMarsConversationDirector::EnqueueArrivalBeats(ACombatantCharacter* Newcome
 
 	EnqueueSpeak(Newcomer, PickArrivalLine(SpeakerOf(Newcomer)), nullptr, true, true, Gap);
 
+	// First NPC to land asks the astronaut, who answers "No!"
+	if (ACombatantCharacter* P = Player.Get())
+	{
+		if (!bAskedPlayer && P->IsAlive() && !Newcomer->IsPlayerAstronaut())
+		{
+			bAskedPlayer = true;
+			EnqueueSpeak(Newcomer, PickAskLine(Newcomer), P, false, true, Gap);
+			EnqueueSpeak(P, MarsDialogueIds::DenyKevin, Newcomer, false, true, Gap);
+		}
+	}
+
+	// Identity asks only happen between NPCs (the player is not in Arrived).
 	if (Arrived.Num() < 2)
 	{
 		return;
@@ -256,6 +277,29 @@ void UMarsConversationDirector::EnqueueClosingConversation()
 	bClosingQueued = true;
 	const UMarsShowSettings* Settings = GetDefault<UMarsShowSettings>();
 	const float Gap = Settings->ConversationGapSeconds;
+
+	// Safety: if the first NPC arrived before the player was registered, ask now.
+	if (!bAskedPlayer)
+	{
+		if (ACombatantCharacter* P = Player.Get())
+		{
+			ACombatantCharacter* Asker = nullptr;
+			for (ACombatantCharacter* C : Arrived)
+			{
+				if (C && C->IsAlive() && !C->IsPlayerAstronaut())
+				{
+					Asker = C;
+					break;
+				}
+			}
+			if (Asker && P->IsAlive())
+			{
+				bAskedPlayer = true;
+				EnqueueSpeak(Asker, PickAskLine(Asker), P, false, true, Gap);
+				EnqueueSpeak(P, MarsDialogueIds::DenyKevin, Asker, false, true, Gap);
+			}
+		}
+	}
 
 	// The first arriver never got asked "Are you Kevin?" — ask them now so every identity is heard.
 	ACombatantCharacter* First = nullptr;
@@ -338,7 +382,7 @@ void UMarsConversationDirector::EnqueueClosingConversation()
 
 void UMarsConversationDirector::NotifyDeath(ACombatantCharacter* Victim, ACombatantCharacter* Killer)
 {
-	if (bStopped || !Killer || !Killer->IsAlive())
+	if (bStopped || !Killer || !Killer->IsAlive() || Killer->IsPlayerAstronaut())
 	{
 		return;
 	}

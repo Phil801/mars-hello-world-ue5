@@ -9,6 +9,7 @@
 #include "World/MarsEnvironment.h"
 #include "Camera/MarsShowCamera.h"
 #include "Combat/CombatantCharacter.h"
+#include "Combat/CombatantAstronaut.h"
 #include "MarsHelloWorld.h"
 #include "Engine/World.h"
 #include "GameFramework/WorldSettings.h"
@@ -16,7 +17,7 @@
 
 AMarsGameMode::AMarsGameMode()
 {
-	DefaultPawnClass = nullptr;
+	DefaultPawnClass = ACombatantAstronaut::StaticClass();
 	PlayerControllerClass = AMarsPlayerController::StaticClass();
 	HUDClass = AMarsHUD::StaticClass();
 }
@@ -40,6 +41,14 @@ void AMarsGameMode::StartPlay()
 {
 	BuildWorld();
 	Super::StartPlay();
+
+	if (UWorld* World = GetWorld())
+	{
+		for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
+		{
+			PlaceAstronaut(It->Get());
+		}
+	}
 
 	const UMarsShowSettings* Settings = GetDefault<UMarsShowSettings>();
 	UMarsShowSubsystem* Show = GetWorld()->GetSubsystem<UMarsShowSubsystem>();
@@ -67,11 +76,40 @@ void AMarsGameMode::StartPlay()
 
 void AMarsGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
-	// Intentionally do not call Super (which would RestartPlayer and try to spawn a pawn).
-	// AMarsPlayerController looks through AMarsShowCamera instead.
+	// PostLogin can run before StartPlay / BuildWorld. Wait for the terrain in that case.
+	if (Terrain)
+	{
+		PlaceAstronaut(NewPlayer);
+	}
+}
+
+void AMarsGameMode::PlaceAstronaut(APlayerController* NewPlayer)
+{
+	if (!NewPlayer)
+	{
+		return;
+	}
+
+	const FVector Ground = ArenaCenter + FVector(0.f, 0.f, 120.f);
+	const FRotator Facing(0.f, 90.f, 0.f); // look toward the first entrance
+	if (ACombatantAstronaut* Existing = Cast<ACombatantAstronaut>(NewPlayer->GetPawn()))
+	{
+		Existing->SetActorLocationAndRotation(Ground, Facing, false, nullptr, ETeleportType::TeleportPhysics);
+		Existing->PrepareAsPlayer(ArenaCenter, Seed);
+	}
+	else
+	{
+		RestartPlayerAtTransform(NewPlayer, FTransform(Facing, Ground));
+		if (ACombatantAstronaut* Astro = Cast<ACombatantAstronaut>(NewPlayer->GetPawn()))
+		{
+			Astro->PrepareAsPlayer(ArenaCenter, Seed);
+		}
+	}
+
 	if (AMarsPlayerController* PC = Cast<AMarsPlayerController>(NewPlayer))
 	{
-		PC->AttachToShowCamera(ShowCamera);
+		PC->SetShowCamera(ShowCamera);
+		PC->UseFirstPersonView();
 	}
 }
 

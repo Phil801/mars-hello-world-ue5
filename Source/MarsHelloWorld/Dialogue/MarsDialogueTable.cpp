@@ -19,6 +19,9 @@ const FName MarsDialogueIds::AccuseVariant(TEXT("AccuseVariant"));
 const FName MarsDialogueIds::AllAreKevin(TEXT("AllAreKevin"));
 const FName MarsDialogueIds::KillKevin(TEXT("KillKevin"));
 const FName MarsDialogueIds::KillKevinVariant(TEXT("KillKevinVariant"));
+const FName MarsDialogueIds::DenyKevin(TEXT("DenyKevin"));
+const FName MarsDialogueIds::DenyKevinVariant(TEXT("DenyKevinVariant"));
+const FName MarsDialogueIds::VictoryHateKevin(TEXT("VictoryHateKevin"));
 
 
 namespace
@@ -95,6 +98,11 @@ namespace
 				MakeLine(MarsDialogueIds::KillKevin,              LOCTEXT("Venusian_KillKevin", "I killed Kevin!"), TEXT("VO_Venusian_KillKevin")),
 				MakeLine(MarsDialogueIds::KillKevinVariant,       LOCTEXT("Venusian_KillKevinVariant", "I killed Kevin! Finally!"), TEXT("VO_Venusian_KillKevinVariant")),
 			}},
+			{ EMarsSpeakerId::Astronaut, {
+				MakeLine(MarsDialogueIds::DenyKevin,              LOCTEXT("Astronaut_DenyKevin", "No!"), TEXT("VO_Astronaut_DenyKevin")),
+				MakeLine(MarsDialogueIds::DenyKevinVariant,       LOCTEXT("Astronaut_DenyKevinVariant", "No! I'm not Kevin."), TEXT("VO_Astronaut_DenyKevinVariant")),
+				MakeLine(MarsDialogueIds::VictoryHateKevin,       LOCTEXT("Astronaut_VictoryHateKevin", "I hate it when people call me Kevin."), TEXT("VO_Astronaut_VictoryHateKevin")),
+			}},
 		};
 		return Table;
 	}
@@ -110,6 +118,10 @@ EMarsSpeakerId MarsDialogue::SpeakerFromSpecies(const FGameplayTag& Species)
 	{
 		return EMarsSpeakerId::Venusian;
 	}
+	if (Species == MarsTags::Species_Astronaut)
+	{
+		return EMarsSpeakerId::Astronaut;
+	}
 	return EMarsSpeakerId::Martian;
 }
 
@@ -119,6 +131,7 @@ const TCHAR* MarsDialogue::SpeakerLabel(EMarsSpeakerId Speaker)
 	{
 	case EMarsSpeakerId::XBot: return TEXT("X-Bot");
 	case EMarsSpeakerId::Venusian: return TEXT("Venusian");
+	case EMarsSpeakerId::Astronaut: return TEXT("Astronaut");
 	default: return TEXT("Martian");
 	}
 }

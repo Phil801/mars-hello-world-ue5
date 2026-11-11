@@ -34,6 +34,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Health")
 	float GetHealthFraction() const { return MaxHealth > 0.f ? Health / MaxHealth : 0.f; }
 
+	/** When set, health will not drop below MinHealth (the Earth astronaut cannot die). */
+	void SetImmortal(bool bInImmortal, float InMinHealth = 1.f);
+
+	UFUNCTION(BlueprintPure, Category = "Health")
+	bool IsImmortal() const { return bImmortal; }
+
 	UPROPERTY(BlueprintAssignable, Category = "Health")
 	FOnMarsHealthChanged OnHealthChanged;
 
@@ -43,4 +49,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
 	float MaxHealth = 100.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
+	bool bImmortal = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
+	float MinHealth = 1.f;
 };

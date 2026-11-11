@@ -11,8 +11,8 @@ class AMarsEnvironment;
 class AMarsShowCamera;
 
 /**
- * Builds Mars at runtime (no .umap content needed), then hands the show to
- * UMarsShowSubsystem / UMarsConversationDirector:
+ * Builds Mars at runtime (no .umap content needed), spawns the playable Earth
+ * astronaut, then hands the show to UMarsShowSubsystem / UMarsConversationDirector:
  * entrances -> Kevin-hunt conversation -> accusation -> free-for-all -> victory.
  * Set as GlobalDefaultGameMode in Config/DefaultEngine.ini.
  */
@@ -37,6 +37,7 @@ public:
 private:
 	void BuildWorld();
 	void LaunchCombatant(int32 Index);
+	void PlaceAstronaut(APlayerController* NewPlayer);
 
 	UPROPERTY(Transient)
 	TObjectPtr<AMarsTerrain> Terrain;

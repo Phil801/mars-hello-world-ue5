@@ -11,7 +11,8 @@ class UMarsShowSubsystem;
 
 /**
  * Canvas HUD (no UMG assets needed): banners, dialogue subtitles, health bars over heads,
- * rising damage numbers, kill feed, fight clock / sudden death, controls help.
+ * first-person shield / crosshair, a Respawn button on victory, rising damage numbers,
+ * kill feed, fight clock / sudden death, controls help.
  */
 UCLASS()
 class MARSHELLOWORLD_API AMarsHUD : public AHUD
@@ -31,4 +32,8 @@ private:
 	void DrawStatus(UMarsShowSubsystem* Show);
 	void DrawKillFeed(UMarsShowSubsystem* Show);
 	void DrawHelp();
+	void DrawPlayerHud(UMarsShowSubsystem* Show);
+	void DrawRespawnButton(UMarsShowSubsystem* Show);
+
+	bool bRespawnMouseWasDown = false;
 };

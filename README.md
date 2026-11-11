@@ -2,22 +2,26 @@
 
 A "hello world" for Unreal Engine 5 with a bit more drama than usual.
 
-On a red Mars plain under a butterscotch sky, three visitors arrive:
+You play a first-person **Earth astronaut** on a red Mars plain under a butterscotch sky, with a
+regenerating shield (you cannot die). Three visitors arrive:
 
 | Who | How they arrive | Voice | How they fight |
 |---|---|---|---|
 | **The Martian** (green, three eyes, antennae) | Sprints in across the dunes | Deep, slow, warbly | Claw slam, lobbed acid spit, acid volley |
 | **X-Bot** (chrome robot, cyan visor) | Flies in on a jetpack and lands hard | Ring-modulated, bit-crushed robot | Eye lasers, laser burst, rocket punch |
 | **The Venusian** (gold jellyfish, magenta core) | Hovers in and keeps floating | High, shimmering, echoing | Homing plasma orbs, sonic pulse, tentacle lash |
+| **You, the Earth astronaut** (white/orange suit) | Already in the arena (first person) | Band-limited radio comms (Piper speaker 199) | Rifle; regenerating shield; cannot die |
 
-Each one arrives looking for Kevin. They say **"Hello world, I'm looking for Kevin."** / **"Have you
+Each visitor arrives looking for Kevin. They say **"Hello world, I'm looking for Kevin."** / **"Have you
 seen Kevin?"** (and a few variants) in their own voice, with HUD subtitles. As the others show up they
 ask **"Are you Kevin?"** One answers **"I'm Phil."**, another **"I'm Tyler."**, and the third gives a
-non-Kevin denial. They keep looking. Then, at a moment picked from the show seed, one of them decides
-another **is** Kevin and starts shooting. The others jump in on the accuser, then each decides that
-**all the others** are Kevin — a free-for-all. Whenever someone is knocked out, the one who did it
-yells **"I killed Kevin!"** Losers fall apart (their body parts become physics objects), and the
-winner gets a victory banner and a lap of honour. A full show runs about **80 to 120 seconds**.
+non-Kevin denial. Someone also asks you; you answer **"No!"**. They keep looking. Then, at a moment
+picked from the show seed, one of them decides another **is** Kevin and starts shooting. The others
+jump in on the accuser, then each decides that **all the others** — including you — are Kevin, and
+they fight you and each other. You can kill them. Whenever an NPC knocks another out, they yell
+**"I killed Kevin!"** Losers fall apart (their body parts become physics objects). When all three
+visitors are down, you say **"I hate it when people call me Kevin."** and the victory HUD offers a
+**Respawn** button that restarts the round. A full show runs about **80 to 120 seconds**.
 Gravity is Mars gravity (3.71 m/s²), so everything hops and floats a bit.
 
 The project is **C++-first, with no hand-made binary assets**. The terrain, sky, characters, effects
@@ -45,7 +49,12 @@ media (the original one-line "Hello, world!" takes are archived under `RawAudio/
    C:\Dev\mars-hello-world-ue5\Content\Python\mars_setup.py
    ```
 
-6. Press **Play** (Alt+P). Controls: **R** restart, **Space** slow motion, **C** change camera, **H** hide help, **Esc** quit.
+6. Press **Play** (Alt+P). You spawn as the astronaut in first person.
+
+   Controls: **WASD** move, **mouse** look, **LMB** fire, **Space** jump, **Left Shift** sprint,
+   **C** cycle camera (first person, then the old director / wide-orbit / low-action attract views),
+   **P** slow motion, **R** restart, **H** hide help, **Esc** quit. On victory, click **Respawn**
+   (or press **R**) to restart the round.
 7. To package a standalone `.exe`:
 
    ```bat
@@ -69,17 +78,18 @@ flowchart TD
     B --> E[AMarsEnvironment: Mars SkyAtmosphere, dusty fog, sun, Phobos and Deimos]
     B --> CAM[AMarsShowCamera: director camera]
     B --> S[UMarsShowSubsystem: the referee]
+    B --> P[Player astronaut already in the arena, first-person camera]
     B -->|timed entrances| M[Martian runs in]
     B -->|timed entrances| X[X-Bot flies in]
     B -->|timed entrances| V[Venusian hovers in]
     M & X & V -->|NotifyArrived| D[UMarsConversationDirector]
-    D -->|cue table| G[Conversation: looking for Kevin, Are you Kevin?, I'm Phil / I'm Tyler]
+    D -->|cue table| G[Conversation: looking for Kevin, Are you Kevin?, I'm Phil / I'm Tyler, astronaut says No!]
     G --> ACC[Accusation: one decides another is Kevin and opens fire]
     ACC --> J[Others fight the accuser, then "you're all Kevin!"]
-    J --> F[Free-for-all: melee, projectiles, pulses]
+    J --> F[Free-for-all: NPCs attack the astronaut and each other]
     F -->|after 50 s| SD[Sudden death: damage ramps up]
-    F -->|NotifyDeath| KO[Killer: "I killed Kevin!" + loser collapses into physics parts]
-    KO -->|one left| W[Victory banner + celebration]
+    F -->|NPC KO| KO[NPC killer: "I killed Kevin!" + loser collapses]
+    KO -->|all NPCs down| W[Astronaut: "I hate it when people call me Kevin." + Respawn button]
     H[AMarsHUD: banners, subtitles, health bars, damage numbers, kill feed] -.reads.-> S
 ```
 
@@ -90,7 +100,10 @@ Code map (`Source/MarsHelloWorld/`):
   `MarsGameplayTags` has the state, damage and species tags. `MarsPlayerController` is spectator input built at runtime with Enhanced Input.
 - `Dialogue/`: `MarsDialogueTable` is the data-driven line set (C++ only, no `.uasset` data table). `MarsConversationDirector`
   is the arrival / conversation / accusation state machine: it assigns "I'm Phil" / "I'm Tyler" / the evasive denial at
-  random from the show seed, picks who accuses whom first, and queues a kill line on each KO.
+  random from the show seed, picks who accuses whom first, asks the astronaut "Are you Kevin?",
+  and queues a kill line on each NPC KO.
+- `Combat/CombatantAstronaut`: playable first-person Earth astronaut (primitive arms and rifle,
+  regenerating shield, immortal). The show camera is still there as an attract / debug view (C).
 - `World/`: `MarsTerrain` is a procedural mesh with fractal noise, ridges, seeded craters and a flattened arena, plus instanced rocks.
   `MarsEnvironment` holds the sky, fog, light and moons. `MarsAssets` builds bodies from `/Engine/BasicShapes` and handles material fallbacks.
 - `Combat/`: `CombatantCharacter` is the shared state machine (Entering → Greeting → Ready → Fighting → Dead/Victorious), AI and attacks.
@@ -122,16 +135,17 @@ knowledge, as a test of learning a field from zero and shipping a real product:
 
 ## Voices
 
-`RawAudio/` holds 44.1 kHz, 16-bit mono WAVs, loudness-normalised to −16 LUFS: **14 lines × 3 characters**.
-They were made by `Tools/voice/generate_voices.py` (re-runnable). Each character keeps a single Piper
-speaker and the same effects on every line. Keep the spoken texts in sync with
-`Source/MarsHelloWorld/Dialogue/MarsDialogueTable.cpp`.
+`RawAudio/` holds 44.1 kHz, 16-bit mono WAVs, loudness-normalised to −16 LUFS: **14 lines × 3 visitors**,
+plus **3 lines** for the astronaut. They were made by `Tools/voice/generate_voices.py` (re-runnable).
+Each character keeps a single Piper speaker and the same effects on every line. Keep the spoken texts
+in sync with `Source/MarsHelloWorld/Dialogue/MarsDialogueTable.cpp`.
 
 | Character | Base voice | Effects |
 |---|---|---|
 | Martian | Piper `en_US-libritts_r-medium`, speaker 700, slowed | pitched down about 4 semitones, vibrato, cavern echo |
 | X-Bot | same model, speaker 333 | 55 Hz ring modulation, 6-bit crush, sample-and-hold, metallic comb |
 | Venusian | same model, speaker 850 | pitched up about 5 semitones, chorus, long airy echoes |
+| Astronaut | same model, speaker 199 | band-limited radio comms (high-pass / low-pass, short cabin echo) |
 
 File names are `VO_<Martian|XBot|Venusian>_<LineId>.wav`. The full script:
 
@@ -151,6 +165,9 @@ File names are `VO_<Martian|XBot|Venusian>_<LineId>.wav`. The full script:
 | AllAreKevin | You're all Kevin! | Recalculating. All units are Kevin. | Wait... you're ALL Kevin! |
 | KillKevin | I killed Kevin! | I killed Kevin! | I killed Kevin! |
 | KillKevinVariant | Got him! I killed Kevin! | Kevin eliminated. | I killed Kevin! Finally! |
+
+Astronaut lines (radio voice): **DenyKevin** "No!"; **DenyKevinVariant** "No! I'm not Kevin.";
+**VictoryHateKevin** "I hate it when people call me Kevin."
 
 Which arrival line each character uses, who claims to be Phil or Tyler (the third is the evasive denial),
 and who accuses whom first, are all rolled from `RandomSeed`. The original one-line greetings are in

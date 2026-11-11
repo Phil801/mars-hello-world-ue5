@@ -42,19 +42,23 @@ public:
 	 *  Returns the hold time in seconds (audio duration + a short tail) so the director can time the next cue
 	 *  even if this actor is destroyed mid-line. */
 	float SpeakLine(FName LineId, ACombatantCharacter* AddressTo, bool bHoldForConversation, bool bFlourish);
-	void StartFighting();
-	void StartFightingAt(ACombatantCharacter* InitialTarget, bool bPinTarget, bool bReadyToFire = false);
+	virtual void StartFighting();
+	virtual void StartFightingAt(ACombatantCharacter* InitialTarget, bool bPinTarget, bool bReadyToFire = false);
 	void ClearTargetPin();
-	void Celebrate();
+	virtual void Celebrate();
 	/** Safety net: teleport to the arrival point if something blocked the entrance. */
 	void ForceArrive();
 
 	/** Applies damage from another combatant (or the world when Source is null). */
-	void ReceiveMarsDamage(float Amount, ACombatantCharacter* Source, FGameplayTag DamageType, const FVector& HitLocation, const FVector& KnockbackVelocity);
+	virtual void ReceiveMarsDamage(float Amount, ACombatantCharacter* Source, FGameplayTag DamageType, const FVector& HitLocation, const FVector& KnockbackVelocity);
 
 	// --- Queries --------------------------------------------------------------------------------
 	UFUNCTION(BlueprintPure, Category = "Combatant")
 	bool IsAlive() const;
+
+	/** The playable Earth astronaut. Immortal, player-controlled, excluded from NPC win/identity logic. */
+	UFUNCTION(BlueprintPure, Category = "Combatant")
+	virtual bool IsPlayerAstronaut() const { return false; }
 
 	UFUNCTION(BlueprintPure, Category = "Combatant")
 	ECombatantState GetCombatState() const { return CombatState; }

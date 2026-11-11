@@ -65,7 +65,8 @@ void AMarsProjectile::InitProjectile(ACombatantCharacter* InShooter, const FComb
 	Glow->SetLightColor(Attack.Color);
 
 	// Lasers are long thin bolts; everything else is a glowing ball.
-	const bool bBolt = Attack.DamageType.MatchesTagExact(MarsTags::Damage_Laser);
+	const bool bBolt = Attack.DamageType.MatchesTagExact(MarsTags::Damage_Laser)
+		|| Attack.DamageType.MatchesTagExact(MarsTags::Damage_Rifle);
 	const float D = Attack.ProjectileRadius / 50.f; // basic sphere is 100 cm across
 	MarsAssets::AddShape(this, Collision, TEXT("Visual"), bBolt ? EMarsShape::Cylinder : EMarsShape::Sphere, FVector::ZeroVector,
 		bBolt ? FRotator(90.f, 0.f, 0.f) : FRotator::ZeroRotator,

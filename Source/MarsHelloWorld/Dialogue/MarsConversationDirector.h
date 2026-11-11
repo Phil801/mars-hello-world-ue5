@@ -67,6 +67,7 @@ public:
 	void BeginShow(int32 InExpectedCombatants, int32 InSeed);
 	void Stop();
 
+	void SetPlayer(ACombatantCharacter* InPlayer);
 	void NotifyArrived(ACombatantCharacter* Combatant);
 	void NotifyDeath(ACombatantCharacter* Victim, ACombatantCharacter* Killer);
 
@@ -106,6 +107,7 @@ private:
 
 	TWeakObjectPtr<ACombatantCharacter> Accuser;
 	TWeakObjectPtr<ACombatantCharacter> Accused;
+	TWeakObjectPtr<ACombatantCharacter> Player;
 
 	EMarsClaimedName ClaimedNames[3] = { EMarsClaimedName::Phil, EMarsClaimedName::Tyler, EMarsClaimedName::NotKevin };
 	FName ArrivalChoice[3];
@@ -121,6 +123,7 @@ private:
 	bool bPlaying = false;
 	bool bClosingQueued = false;
 	bool bStopped = false;
+	bool bAskedPlayer = false;
 
 	FTimerHandle WaitHandle;
 };
