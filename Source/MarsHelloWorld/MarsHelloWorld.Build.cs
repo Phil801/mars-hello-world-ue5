@@ -7,6 +7,7 @@ public class MarsHelloWorld : ModuleRules
 	public MarsHelloWorld(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		bUseUnity = false; // local fix: MarsMusicActor.cpp and MarsVoiceLibrary.cpp both define ReadU32/ReadU16
 
 		// Lets us write #include "Combat/CombatantCharacter.h" from anywhere in the module
 		// (same trick as tomlooman/ActionRoguelike).
