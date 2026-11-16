@@ -53,6 +53,8 @@ void AMarsProjectile::InitProjectile(ACombatantCharacter* InShooter, const FComb
 		Collision->IgnoreActorWhenMoving(Shooter, true);
 	}
 
+	// InVelocity is world-space. The default (local space) would rotate it again by the spawn rotation when the component initializes.
+	Movement->bInitialVelocityInLocalSpace = false;
 	Movement->Velocity = InVelocity;
 	Movement->ProjectileGravityScale = Attack.ProjectileGravityScale;
 	if (HomingTarget && Attack.HomingAcceleration > 0.f)

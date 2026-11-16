@@ -89,7 +89,13 @@ void AMarsPlayerController::EnsureInputObjects()
 		AddNegated(MoveRightAction, EKeys::Left);
 		MappingContext->MapKey(MoveRightAction, EKeys::Gamepad_LeftX);
 
-		MappingContext->MapKey(LookAction, EKeys::Mouse2D);
+		{
+			FEnhancedActionKeyMapping& Mapping = MappingContext->MapKey(LookAction, EKeys::Mouse2D);
+			UInputModifierNegate* Neg = NewObject<UInputModifierNegate>(MappingContext);
+			Neg->bX = false;
+			Neg->bZ = false;
+			Mapping.Modifiers.Add(Neg); // mouse up = look up
+		}
 		MappingContext->MapKey(LookAction, EKeys::Gamepad_RightX);
 		{
 			FEnhancedActionKeyMapping& Mapping = MappingContext->MapKey(LookAction, EKeys::Gamepad_RightY);

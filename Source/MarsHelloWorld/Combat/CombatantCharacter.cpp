@@ -809,9 +809,12 @@ void ACombatantCharacter::ExecutePulse(const FCombatantAttack& Attack)
 
 void ACombatantCharacter::ReceiveMarsDamage(float Amount, ACombatantCharacter* Source, FGameplayTag DamageType, const FVector& HitLocation, const FVector& KnockbackVelocity)
 {
-	if (!IsAlive() || CombatState != ECombatantState::Fighting)
+	// The player can hurt combatants from the start of the game (intro included); everyone else only after "FIGHT!".
+	const bool bFromPlayer = Source && Source != this && Source->IsPlayerControlled();
+	const bool bPreFight = CombatState == ECombatantState::Entering || CombatState == ECombatantState::Greeting || CombatState == ECombatantState::Ready;
+	if (!IsAlive() || !(CombatState == ECombatantState::Fighting || (bFromPlayer && bPreFight)))
 	{
-		return; // no damage before "FIGHT!" or after the end
+		return; // no damage before "FIGHT!" (except from the player) or after the end
 	}
 	UMarsShowSubsystem* Show = GetShow();
 	const float Scaled = Amount * (Show ? Show->GetDamageMultiplier() : 1.f);

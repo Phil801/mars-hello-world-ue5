@@ -309,6 +309,20 @@ void ACombatantAstronaut::ReceiveMarsDamage(float Amount, ACombatantCharacter* S
 
 FVector ACombatantAstronaut::GetMuzzleLocation() const
 {
+	// Tip of the visible first-person barrel (a cylinder pitched 90 degrees, so its local Z axis runs along the barrel).
+	if (const TObjectPtr<UStaticMeshComponent>* Barrel = Parts.Find(TEXT("FP_Barrel")))
+	{
+		if (*Barrel && (*Barrel)->IsVisible())
+		{
+			const float HalfLength = 50.f * (*Barrel)->GetComponentScale().Z; // basic cylinder is 100 cm tall
+			FVector Axis = (*Barrel)->GetUpVector();
+			if (FirstPersonCamera && FVector::DotProduct(Axis, FirstPersonCamera->GetForwardVector()) < 0.f)
+			{
+				Axis = -Axis; // pick the end that points away from the camera
+			}
+			return (*Barrel)->GetComponentLocation() + Axis * HalfLength;
+		}
+	}
 	if (FirstPersonCamera)
 	{
 		return FirstPersonCamera->GetComponentLocation() + FirstPersonCamera->GetForwardVector() * 70.f + FirstPersonCamera->GetRightVector() * 18.f + FirstPersonCamera->GetUpVector() * -8.f;
@@ -323,7 +337,9 @@ const FCombatantAttack* ACombatantAstronaut::GetRifleAttack() const
 
 void ACombatantAstronaut::FireWeapon()
 {
-	if (GetCombatState() != ECombatantState::Fighting || !IsAlive() || FireCooldown > 0.f)
+	// Allowed from the moment the game starts (not just once the fight begins); only blocked when dead or after victory.
+	const ECombatantState State = GetCombatState();
+	if (State == ECombatantState::Dead || State == ECombatantState::Victorious || !IsAlive() || FireCooldown > 0.f)
 	{
 		return;
 	}
@@ -346,7 +362,25 @@ void ACombatantAstronaut::FireWeapon()
 	}
 
 	const FVector Start = GetMuzzleLocation();
-	const FVector Aim = FirstPersonCamera->GetComponentLocation() + FirstPersonCamera->GetForwardVector() * 4000.f;
+	// Aim at whatever is under the crosshair: trace from the camera, then fire from the muzzle toward that point.
+	const FVector CamLoc = FirstPersonCamera->GetComponentLocation();
+	const FVector CamFwd = FirstPersonCamera->GetForwardVector();
+	FVector Aim = CamLoc + CamFwd * 50000.f;
+	{
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(AstronautAim), false, this);
+		FHitResult Hit;
+		if (World->LineTraceSingleByChannel(Hit, CamLoc, Aim, ECC_Visibility, Params) && Hit.Distance > 100.f)
+		{
+			Aim = Hit.ImpactPoint;
+		}
+
+		// Second trace from the muzzle toward the crosshair point; if something is in the way of the barrel, that is what gets hit.
+		FHitResult MuzzleHit;
+		if (World->LineTraceSingleByChannel(MuzzleHit, Start, Aim, ECC_Visibility, Params))
+		{
+			Aim = MuzzleHit.ImpactPoint;
+		}
+	}
 	const FVector Velocity = (Aim - Start).GetSafeNormal() * Attack->ProjectileSpeed;
 
 	const FTransform SpawnTM(Velocity.Rotation(), Start);
