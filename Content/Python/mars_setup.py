@@ -157,6 +157,8 @@ def color_glow_material(name, default_color, default_glow, roughness, metallic):
     mel.connect_material_property(mult, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     mel.connect_material_property(scalar(mat, roughness, -350, 400), "", unreal.MaterialProperty.MP_ROUGHNESS)
     mel.connect_material_property(scalar(mat, metallic, -350, 500), "", unreal.MaterialProperty.MP_METALLIC)
+    # Rocks are instanced static meshes; without this flag the engine swaps in the default material.
+    mat.set_editor_property("used_with_instanced_static_meshes", True)
     mel.recompile_material(mat)
     eal.save_loaded_asset(mat)
     log("material ok: " + name)
