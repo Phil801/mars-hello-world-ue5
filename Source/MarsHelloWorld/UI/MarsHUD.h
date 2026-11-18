@@ -11,7 +11,7 @@ class UMarsShowSubsystem;
 
 /**
  * Canvas HUD (no UMG assets needed): banners, dialogue subtitles, health bars over heads,
- * first-person shield / crosshair, Respawn and Quit buttons on victory, rising damage numbers,
+ * first-person shield / crosshair, rising damage numbers,
  * kill feed, fight clock / sudden death, controls help.
  */
 UCLASS()
@@ -33,7 +33,4 @@ private:
 	void DrawKillFeed(UMarsShowSubsystem* Show);
 	void DrawHelp();
 	void DrawPlayerHud(UMarsShowSubsystem* Show);
-	void DrawVictoryButtons(UMarsShowSubsystem* Show);
-
-	bool bVictoryMouseWasDown = false;
 };

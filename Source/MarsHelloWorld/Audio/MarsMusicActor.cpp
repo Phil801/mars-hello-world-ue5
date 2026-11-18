@@ -69,6 +69,7 @@ AMarsMusicActor::AMarsMusicActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
+	PrimaryActorTick.bTickEvenWhenPaused = true; // win/death dialogs pause the game; loops must still fade out
 	SetHidden(true);
 
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
@@ -185,13 +186,14 @@ void AMarsMusicActor::StartAmbient()
 	BattleTarget = 0.f;
 	bBattleStarted = false;
 	bVictoryPlayed = false;
+	bGameOver = false;
 	ApplyVolumes();
 	MarsShowLog(TEXT("Music: ambient Mars loop"));
 }
 
 void AMarsMusicActor::NotifyFirstShot()
 {
-	if (bBattleStarted || bVictoryPlayed)
+	if (bBattleStarted || bVictoryPlayed || bGameOver)
 	{
 		return;
 	}
@@ -238,6 +240,18 @@ void AMarsMusicActor::PlayVictory()
 	MarsShowLog(TEXT("Music: victory sting"));
 }
 
+void AMarsMusicActor::StopForGameOver()
+{
+	if (bGameOver || bVictoryPlayed)
+	{
+		return;
+	}
+	bGameOver = true;
+	AmbientTarget = 0.f;
+	BattleTarget = 0.f;
+	MarsShowLog(TEXT("Music: game over, loops fading out"));
+}
+
 void AMarsMusicActor::NotifyVoice(float DurationSeconds)
 {
 	const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
@@ -259,7 +273,7 @@ void AMarsMusicActor::Tick(float DeltaSeconds)
 	const float DuckTarget = (DuckUntil > 0.f && Now < DuckUntil) ? DuckLevel : 1.f;
 	DuckCurrent = FMath::FInterpTo(DuckCurrent, DuckTarget, DeltaSeconds, 8.f);
 
-	if (bVictoryPlayed && AmbientVol < 0.01f && BattleVol < 0.01f)
+	if ((bVictoryPlayed || bGameOver) && AmbientVol < 0.01f && BattleVol < 0.01f)
 	{
 		// Loops have faded out; stop them so they don't keep pumping under the sting.
 		if (AmbientComp && AmbientComp->IsPlaying() && AmbientTarget <= 0.f)

@@ -20,6 +20,7 @@ def _tick(_delta):
     mars_setup.main()
 
 
-if os.environ.get("MARS_SKIP_SETUP") != "1":
+# Skip outside the full editor (e.g. UnrealEditor.exe -game standalone tests), where editor-only APIs crash.
+if "-game" not in unreal.SystemLibrary.get_command_line().lower().split() and os.environ.get("MARS_SKIP_SETUP") != "1":
     # Slate never ticks in -run=pythonscript commandlets, so this is a no-op there (the build script runs mars_setup.py directly).
     _handle = unreal.register_slate_post_tick_callback(_tick)

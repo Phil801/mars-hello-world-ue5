@@ -31,6 +31,8 @@ public:
 	void StartAmbient();
 	void NotifyFirstShot();
 	void PlayVictory();
+	/** Player died: fade out the ambient and battle loops and keep them off until the next StartAmbient. */
+	void StopForGameOver();
 	void NotifyVoice(float DurationSeconds);
 
 protected:
@@ -78,4 +80,5 @@ private:
 	float MasterVolume = 0.85f;
 	bool bBattleStarted = false;
 	bool bVictoryPlayed = false;
+	bool bGameOver = false;
 };

@@ -151,6 +151,10 @@ void UMarsShowSubsystem::NotifyDeath(ACombatantCharacter* Victim, ACombatantChar
 	{
 		Director->NotifyDeath(Victim, Killer);
 	}
+	if (Music && Victim == GetPlayerAstronaut())
+	{
+		Music->StopForGameOver();
+	}
 	OnCombatantDied.Broadcast(Victim, Killer);
 	CheckForWinner();
 }
@@ -197,7 +201,6 @@ void UMarsShowSubsystem::CheckForWinner()
 	if (ACombatantCharacter* Player = GetPlayerAstronaut())
 	{
 		Winner = Player;
-		ShowBanner(LOCTEXT("YouWin", "YOU WIN"), Player->GetProfile().UIColor, 9999.f, 5.f);
 		MarsShowLog(TEXT("YOU WIN"));
 		Player->Celebrate();
 		if (AMarsPlayerController* PC = Cast<AMarsPlayerController>(UGameplayStatics::GetPlayerController(this, 0)))

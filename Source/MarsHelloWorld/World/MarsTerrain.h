@@ -70,6 +70,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Mars")
 	int32 RockCount = 260;
 
+	/** Material for boulders and slabs. If unset or it fails to load, rocks fall back to the tinted surface material. */
+	UPROPERTY(EditAnywhere, Category = "Mars")
+	TSoftObjectPtr<UMaterialInterface> RockMaterial = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(TEXT("/Game/Materials/Rock050/MI_Rock050.MI_Rock050")));
+
+	/** Material for the ground mesh. If unset or it fails to load, falls back to the vertex-coloured M_MarsGround. */
+	UPROPERTY(EditAnywhere, Category = "Mars")
+	TSoftObjectPtr<UMaterialInterface> GroundMaterial = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(TEXT("/Game/Materials/RedLaterite/MI_MarsGround.MI_MarsGround")));
+
 	/** Flip triangle winding if the ground renders inside-out on your engine build (see CHECKS.md). */
 	UPROPERTY(EditAnywhere, Category = "Mars")
 	bool bFlipWinding = false;

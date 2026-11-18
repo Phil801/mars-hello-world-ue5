@@ -167,9 +167,16 @@ void AMarsTerrain::BuildTerrain(int32 Seed)
 	// Ground material: vertex-coloured M_MarsGround when the setup script has run, else a flat rust MID.
 	UMaterialInterface* GroundMat = MarsAssets::GetGroundMaterial();
 	const bool bVertexColorMaterial = MarsAssets::HasProjectMaterials();
-	Ground->SetMaterial(0, bVertexColorMaterial
-		? GroundMat
-		: MarsAssets::MakeColoredMaterial(this, GroundMat, FLinearColor(0.45f, 0.18f, 0.075f)));
+	if (UMaterialInterface* CustomGround = GroundMaterial.LoadSynchronous())
+	{
+		Ground->SetMaterial(0, CustomGround);
+	}
+	else
+	{
+		Ground->SetMaterial(0, bVertexColorMaterial
+			? GroundMat
+			: MarsAssets::MakeColoredMaterial(this, GroundMat, FLinearColor(0.45f, 0.18f, 0.075f)));
+	}
 
 	ScatterRocks(Stream);
 
@@ -184,9 +191,17 @@ void AMarsTerrain::ScatterRocks(FRandomStream& Stream)
 	Boulders->SetStaticMesh(MarsAssets::GetShape(EMarsShape::Sphere));
 	Slabs->SetStaticMesh(MarsAssets::GetShape(EMarsShape::Cube));
 
-	UMaterialInterface* RockParent = MarsAssets::GetSurfaceMaterial();
-	Boulders->SetMaterial(0, MarsAssets::MakeColoredMaterial(this, RockParent, FLinearColor(0.20f, 0.085f, 0.045f)));
-	Slabs->SetMaterial(0, MarsAssets::MakeColoredMaterial(this, RockParent, FLinearColor(0.30f, 0.12f, 0.06f)));
+	if (UMaterialInterface* RockMat = RockMaterial.LoadSynchronous())
+	{
+		Boulders->SetMaterial(0, RockMat);
+		Slabs->SetMaterial(0, RockMat);
+	}
+	else
+	{
+		UMaterialInterface* RockParent = MarsAssets::GetSurfaceMaterial();
+		Boulders->SetMaterial(0, MarsAssets::MakeColoredMaterial(this, RockParent, FLinearColor(0.20f, 0.085f, 0.045f)));
+		Slabs->SetMaterial(0, MarsAssets::MakeColoredMaterial(this, RockParent, FLinearColor(0.30f, 0.12f, 0.06f)));
+	}
 
 	for (int32 i = 0; i < RockCount; ++i)
 	{
