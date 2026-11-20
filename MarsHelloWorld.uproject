@@ -1,4 +1,4 @@
-﻿{
+{
     "FileVersion":  3,
     "EngineAssociation":  "5.8",
     "Category":  "",
@@ -38,6 +38,10 @@
                     },
                     {
                         "Name":  "AllToolsets",
+                        "Enabled":  true
+                    },
+                    {
+                        "Name":  "CommonUI",
                         "Enabled":  true
                     }
                 ],
