@@ -9,6 +9,7 @@
 class ACombatantCharacter;
 class AMarsMusicActor;
 class AMarsTerrain;
+class ALandscapeProxy;
 class UMarsConversationDirector;
 
 UENUM(BlueprintType)
@@ -83,6 +84,7 @@ public:
 
 	void BeginShow(int32 InExpectedCombatants, int32 InSeed);
 	void SetTerrain(AMarsTerrain* InTerrain);
+	void SetLandscape(ALandscapeProxy* InLandscape);
 
 	// --- Combatant / director callbacks ----------------------------------------------------------
 	void RegisterCombatant(ACombatantCharacter* Combatant);
@@ -153,6 +155,7 @@ private:
 	TWeakObjectPtr<ACombatantCharacter> CurrentSpeaker;
 	TWeakObjectPtr<ACombatantCharacter> Winner;
 	TWeakObjectPtr<AMarsTerrain> Terrain;
+	TWeakObjectPtr<ALandscapeProxy> Landscape;
 
 	EMarsShowPhase Phase = EMarsShowPhase::Arrivals;
 	float PhaseStartTime = 0.f;

@@ -45,6 +45,17 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Mars")
 	float GetArenaRadius() const { return ArenaRadius; }
 
+	float GetHalfExtent() const { return HalfExtent; }
+
+	/** Seeds the height function (noise offset + craters) without building any mesh. BuildTerrain calls this first. */
+	void InitHeightField(FRandomStream& Stream);
+
+	/** The rock layout BuildTerrain would scatter, as world transforms (continues the same random stream). */
+	void ComputeRockTransforms(FRandomStream& Stream, TArray<FTransform>& OutBoulders, TArray<FTransform>& OutSlabs) const;
+
+	TSoftObjectPtr<UMaterialInterface> GetRockMaterialPath() const { return RockMaterial; }
+	TSoftObjectPtr<UMaterialInterface> GetGroundMaterialPath() const { return GroundMaterial; }
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Mars")
 	TObjectPtr<UProceduralMeshComponent> Ground;

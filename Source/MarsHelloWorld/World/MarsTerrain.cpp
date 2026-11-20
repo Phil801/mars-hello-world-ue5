@@ -94,9 +94,8 @@ FLinearColor AMarsTerrain::GroundColorAt(float X, float Y, float Height, const F
 	return Col;
 }
 
-void AMarsTerrain::BuildTerrain(int32 Seed)
+void AMarsTerrain::InitHeightField(FRandomStream& Stream)
 {
-	FRandomStream Stream(Seed);
 	NoiseOffset = FVector2D(Stream.FRandRange(-500.f, 500.f), Stream.FRandRange(-500.f, 500.f));
 
 	// Craters (kept out of the arena).
@@ -111,6 +110,12 @@ void AMarsTerrain::BuildTerrain(int32 Seed)
 		C.Depth = C.Radius * Stream.FRandRange(0.12f, 0.22f);
 		Craters.Add(C);
 	}
+}
+
+void AMarsTerrain::BuildTerrain(int32 Seed)
+{
+	FRandomStream Stream(Seed);
+	InitHeightField(Stream);
 
 	// Grid from the engine helper (winding matches the engine's own up-facing plane),
 	// then displace it with our height function.
@@ -203,6 +208,16 @@ void AMarsTerrain::ScatterRocks(FRandomStream& Stream)
 		Slabs->SetMaterial(0, MarsAssets::MakeColoredMaterial(this, RockParent, FLinearColor(0.30f, 0.12f, 0.06f)));
 	}
 
+	TArray<FTransform> BoulderXforms, SlabXforms;
+	ComputeRockTransforms(Stream, BoulderXforms, SlabXforms);
+	Boulders->AddInstances(BoulderXforms, /*bShouldReturnIndices*/ false, /*bWorldSpace*/ true);
+	Slabs->AddInstances(SlabXforms, /*bShouldReturnIndices*/ false, /*bWorldSpace*/ true);
+}
+
+void AMarsTerrain::ComputeRockTransforms(FRandomStream& Stream, TArray<FTransform>& OutBoulders, TArray<FTransform>& OutSlabs) const
+{
+	OutBoulders.Reset();
+	OutSlabs.Reset();
 	for (int32 i = 0; i < RockCount; ++i)
 	{
 		// Dense near the arena edge (good foreground for the camera), sparse far away.
@@ -218,7 +233,7 @@ void AMarsTerrain::ScatterRocks(FRandomStream& Stream)
 		// Engine basic shapes are 100 cm across; sink rocks 30% into the ground.
 		const FVector Loc(X, Y, GetHeightAt(X, Y) + Scale.Z * 50.f * 0.4f);
 
-		UInstancedStaticMeshComponent* Target = (Stream.FRand() < 0.7f) ? Boulders.Get() : Slabs.Get();
-		Target->AddInstance(FTransform(Rot, Loc, Scale), /*bWorldSpace*/ true);
+		TArray<FTransform>& Target = (Stream.FRand() < 0.7f) ? OutBoulders : OutSlabs;
+		Target.Add(FTransform(Rot, Loc, Scale));
 	}
 }

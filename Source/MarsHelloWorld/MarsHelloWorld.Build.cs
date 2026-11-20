@@ -23,7 +23,8 @@ public class MarsHelloWorld : ModuleRules
 			"GameplayTags",
 			"AIModule",
 			"DeveloperSettings",
-			"ProceduralMeshComponent"
+			"ProceduralMeshComponent",
+			"Landscape"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
@@ -31,5 +32,11 @@ public class MarsHelloWorld : ModuleRules
 			"Slate",
 			"SlateCore"
 		});
+
+		if (Target.bBuildEditor)
+		{
+			// UMarsArenaBuilder registers the moon material instances it creates.
+			PrivateDependencyModuleNames.Add("AssetRegistry");
+		}
 	}
 }

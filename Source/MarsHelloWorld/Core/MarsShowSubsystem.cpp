@@ -8,6 +8,9 @@
 #include "Combat/CombatantCharacter.h"
 #include "Combat/MarsHealthComponent.h"
 #include "World/MarsTerrain.h"
+#include "LandscapeProxy.h"
+#include "EngineUtils.h"
+#include "Engine/World.h"
 #include "MarsHelloWorld.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
@@ -62,6 +65,15 @@ void UMarsShowSubsystem::BeginShow(int32 InExpectedCombatants, int32 InSeed)
 
 	if (UWorld* World = GetWorld())
 	{
+		if (!IsValid(Music))
+		{
+			// Prefer the one placed in the level (MarsArena).
+			for (TActorIterator<AMarsMusicActor> It(World); It; ++It)
+			{
+				Music = *It;
+				break;
+			}
+		}
 		if (!IsValid(Music))
 		{
 			FActorSpawnParameters Spawn;
@@ -335,6 +347,25 @@ float UMarsShowSubsystem::GetGroundZ(float X, float Y, float Fallback) const
 	{
 		return T->GetHeightAt(X, Y);
 	}
+	if (const ALandscapeProxy* L = Landscape.Get())
+	{
+		const TOptional<float> H = L->GetHeightAtLocation(FVector(X, Y, 0.f));
+		if (H.IsSet())
+		{
+			return H.GetValue();
+		}
+	}
+	// No known ground actor (or outside the landscape): trace static world geometry.
+	if (const UWorld* World = GetWorld())
+	{
+		FHitResult Hit;
+		FCollisionObjectQueryParams Objects(ECC_WorldStatic);
+		FCollisionQueryParams Query(SCENE_QUERY_STAT(MarsGroundZ), false);
+		if (World->LineTraceSingleByObjectType(Hit, FVector(X, Y, 200000.f), FVector(X, Y, -200000.f), Objects, Query))
+		{
+			return static_cast<float>(Hit.ImpactPoint.Z);
+		}
+	}
 	return Fallback;
 }
 
@@ -358,4 +389,9 @@ void UMarsShowSubsystem::SetPhase(EMarsShowPhase NewPhase)
 void UMarsShowSubsystem::SetTerrain(AMarsTerrain* InTerrain)
 {
 	Terrain = InTerrain;
+}
+
+void UMarsShowSubsystem::SetLandscape(ALandscapeProxy* InLandscape)
+{
+	Landscape = InLandscape;
 }
