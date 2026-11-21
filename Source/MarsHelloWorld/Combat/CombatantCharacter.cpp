@@ -404,7 +404,7 @@ float ACombatantCharacter::SpeakLine(FName LineId, ACombatantCharacter* AddressT
 	if (bHold)
 	{
 		SetCombatState(ECombatantState::Greeting);
-		if (AuraLight)
+		if (AuraLight && !IsPlayerControlled()) // no aura light on the player
 		{
 			AuraLight->SetIntensity(6000.f);
 		}
@@ -615,13 +615,7 @@ void ACombatantCharacter::TickFighting(float DeltaSeconds)
 	const float Radial = FMath::Clamp((Dist - DesiredRange) / 300.f, -1.f, 1.f);
 	FVector Move = Dir * Radial + Right * StrafeSign * 0.7f;
 
-	// Stay inside the arena so the camera can frame everyone.
-	const FVector FromCenter = (MyLoc - ArenaCenter) * FVector(1.f, 1.f, 0.f);
-	const float CenterDist = static_cast<float>(FromCenter.Size());
-	if (CenterDist > 1500.f)
-	{
-		Move += -FromCenter.GetSafeNormal() * ((CenterDist - 1500.f) / 300.f);
-	}
+	// No arena leash: combatants can roam anywhere.
 	AddMovementInput(Move.GetSafeNormal(), 1.f);
 
 	// Occasional low-gravity hop (dodges projectiles, looks great).
@@ -893,7 +887,10 @@ void ACombatantCharacter::Celebrate()
 {
 	SetCombatState(ECombatantState::Victorious);
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-	AuraLight->SetIntensity(9000.f);
+	if (!IsPlayerControlled()) // no aura light on the player
+	{
+		AuraLight->SetIntensity(9000.f);
+	}
 	HopTimer = 0.4f;
 	// Victory is silent: the last "I killed Kevin!" is the closing line.
 }
