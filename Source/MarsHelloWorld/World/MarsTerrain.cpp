@@ -220,13 +220,17 @@ void AMarsTerrain::ComputeRockTransforms(FRandomStream& Stream, TArray<FTransfor
 	OutSlabs.Reset();
 	for (int32 i = 0; i < RockCount; ++i)
 	{
-		// Dense near the arena edge (good foreground for the camera), sparse far away.
-		const float Angle = Stream.FRandRange(0.f, 2.f * PI);
-		const float U = Stream.FRand();
-		const float Dist = FMath::Lerp(ArenaRadius * 1.15f, HalfExtent * 0.8f, U * U);
-		const float X = FMath::Cos(Angle) * Dist;
-		const float Y = FMath::Sin(Angle) * Dist;
-		const float Size = FMath::Lerp(0.25f, 2.6f, FMath::Pow(Stream.FRand(), 2.2f)) * (1.f + Dist / 15000.f);
+		// Even spread across the terrain (was radial, dense near the arena edge).
+		// Uniform over the terrain square, keeping the arena clear.
+		const float Extent = HalfExtent * 0.9f;
+		float X, Y, Dist;
+		do
+		{
+			X = Stream.FRandRange(-Extent, Extent);
+			Y = Stream.FRandRange(-Extent, Extent);
+			Dist = FMath::Sqrt(X * X + Y * Y);
+		} while (Dist < ArenaRadius * 1.15f);
+		const float Size = FMath::Lerp(0.25f, 2.6f, FMath::Pow(Stream.FRand(), 2.2f));
 
 		const FVector Scale(Size * Stream.FRandRange(0.8f, 1.6f), Size * Stream.FRandRange(0.8f, 1.4f), Size * Stream.FRandRange(0.45f, 0.9f));
 		const FRotator Rot(Stream.FRandRange(-15.f, 15.f), Stream.FRandRange(0.f, 360.f), Stream.FRandRange(-15.f, 15.f));

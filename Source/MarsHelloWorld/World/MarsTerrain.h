@@ -47,6 +47,9 @@ public:
 
 	float GetHalfExtent() const { return HalfExtent; }
 
+	int32 GetRockCount() const { return RockCount; }
+	void SetRockCount(int32 Count) { RockCount = FMath::Max(0, Count); }
+
 	/** Seeds the height function (noise offset + craters) without building any mesh. BuildTerrain calls this first. */
 	void InitHeightField(FRandomStream& Stream);
 
@@ -79,7 +82,7 @@ protected:
 	float ArenaRadius = 1700.f;
 
 	UPROPERTY(EditAnywhere, Category = "Mars")
-	int32 RockCount = 260;
+	int32 RockCount = 325; // was 260; +25% density
 
 	/** Material for boulders and slabs. If unset or it fails to load, rocks fall back to the tinted surface material. */
 	UPROPERTY(EditAnywhere, Category = "Mars")

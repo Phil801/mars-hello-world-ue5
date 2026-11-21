@@ -284,8 +284,15 @@ FString UMarsArenaBuilder::BuildMarsArena(UWorld* World, bool bReplaceExisting)
 	}
 	FRandomStream Stream(Seed);
 	Height->InitHeightField(Stream);
+	Height->SetRockCount(FMath::RoundToInt(Height->GetRockCount() * GetDefault<AMarsRockField>()->GetRockDensity()));
 	TArray<FTransform> BoulderXforms, SlabXforms;
 	Height->ComputeRockTransforms(Stream, BoulderXforms, SlabXforms);
+	TArray<FTransform> PebbleXforms;
+	AMarsRockField::ComputePebbleCandidates(Height, Seed, GetDefault<AMarsRockField>()->GetPebbleCount(), PebbleXforms);
+	TArray<FTransform> BoulderCandXforms;
+	AMarsRockField::ComputeBoulderCandidates(Height, Seed, GetDefault<AMarsRockField>()->GetBoulderCount(), BoulderCandXforms);
+	TArray<FTransform> SlabCandXforms;
+	AMarsRockField::ComputeBoulderCandidates(Height, Seed ^ 0x51AB, GetDefault<AMarsRockField>()->GetSlabCount(), SlabCandXforms);
 
 	const float HalfExtent = Height->GetHalfExtent();
 	const float QuadSize = (2.f * HalfExtent) / float(VertsPerSide - 1);
@@ -344,16 +351,7 @@ FString UMarsArenaBuilder::BuildMarsArena(UWorld* World, bool bReplaceExisting)
 	int32 RockCount = 0;
 	if (AMarsRockField* Rocks = SpawnTagged<AMarsRockField>(World, FTransform::Identity, TEXT("MarsRockField"), TEXT("Mars/Terrain")))
 	{
-		UMaterialInterface* RockMat = Height->GetRockMaterialPath().LoadSynchronous();
-		Rocks->GetBoulders()->SetStaticMesh(MarsAssets::GetShape(EMarsShape::Sphere));
-		Rocks->GetSlabs()->SetStaticMesh(MarsAssets::GetShape(EMarsShape::Cube));
-		if (RockMat)
-		{
-			Rocks->GetBoulders()->SetMaterial(0, RockMat);
-			Rocks->GetSlabs()->SetMaterial(0, RockMat);
-		}
-		Rocks->GetBoulders()->AddInstances(BoulderXforms, false, true);
-		Rocks->GetSlabs()->AddInstances(SlabXforms, false, true);
+		Rocks->PlaceRocks(BoulderXforms, SlabXforms, Seed, PebbleXforms, BoulderCandXforms, SlabCandXforms);
 		RockCount = BoulderXforms.Num() + SlabXforms.Num();
 	}
 
